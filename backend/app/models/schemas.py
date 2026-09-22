@@ -95,6 +95,8 @@ class SourceEvidence(BaseModel):
     evidence: str
     chunk_id: str
     similarity_score: Optional[float] = None
+    semantic_score: Optional[float] = None
+    coverage_score: Optional[float] = None
 
 
 class ChatRequest(BaseModel):

@@ -2,6 +2,16 @@
 Token-Optimized Retriever Service for DocuPilot.
 Coordinates deterministic query normalization, deduplication, threshold gating,
 and adaptive evidence context sizing (1–3 chunks).
+
+Hybrid retrieval (dense + lexical grounding):
+- Semantic cosine search fetches a candidate pool from ChromaDB.
+- A lexical coverage score measures how many question content keywords literally
+  appear in a candidate (strong signal that the chunk directly contains the answer).
+- Candidates are reranked by hybrid = min(1, cosine + weight * coverage^2) so a chunk
+  that directly contains the answer outranks a merely semantically related chunk.
+- The relevance gate accepts a query when either the top cosine passes the semantic
+  threshold OR the best grounded candidate satisfies the lexical override (cosine
+  floor + coverage floor + min matched terms), keeping unsupported questions NOT_FOUND.
 """
 
 import re
@@ -11,6 +21,7 @@ from app.core.logging import logger
 from app.models.schemas import SourceEvidence
 from app.services.embeddings import embedding_service
 from app.services.vector_store import vector_store_service
+from app.utils.text import calculate_keyword_coverage, extract_query_keywords
 
 
 def normalize_query_text(query: str) -> str:
@@ -35,6 +46,12 @@ def calculate_text_overlap_ratio(text1: str, text2: str) -> float:
     return len(intersection) / len(union)
 
 
+def _hybrid_score(cosine_similarity: float, coverage: float) -> float:
+    """Combines semantic similarity with lexical grounding (direct-answer emphasis)."""
+    bonus = settings.COVERAGE_BONUS_WEIGHT * (coverage ** 2)
+    return max(0.0, min(1.0, cosine_similarity + bonus))
+
+
 class RetrieverService:
     def __init__(
         self,
@@ -49,6 +66,14 @@ class RetrieverService:
         self.similarity_threshold = similarity_threshold
         self.high_relevance_threshold = high_relevance_threshold
         self.strong_relevance_threshold = strong_relevance_threshold
+        self.candidate_pool_size = settings.CANDIDATE_POOL_SIZE
+        self.min_candidate_cosine = settings.MIN_CANDIDATE_COSINE
+        self.lexical_override_min_cosine = settings.LEXICAL_OVERRIDE_MIN_COSINE
+        self.lexical_override_min_coverage = settings.LEXICAL_OVERRIDE_MIN_COVERAGE
+        self.lexical_override_min_terms = settings.LEXICAL_OVERRIDE_MIN_TERMS
+        self.semantic_gate_threshold = settings.SEMANTIC_GATE_THRESHOLD
+        self.hybrid_high_relevance_threshold = settings.HYBRID_HIGH_RELEVANCE_THRESHOLD
+        self.hybrid_strong_relevance_threshold = settings.HYBRID_STRONG_RELEVANCE_THRESHOLD
 
     def retrieve(
         self,
@@ -56,19 +81,19 @@ class RetrieverService:
         document_id_filter: Optional[str] = None
     ) -> list[SourceEvidence]:
         """
-        Token-optimized retrieval pipeline:
-        1. Normalize query
-        2. Vector search in ChromaDB (Top-K)
-        3. Relevance threshold filtering (rejects chunks < similarity_threshold)
-        4. Near-duplicate and identical chunk removal
-        5. Adaptive context sizing:
-           - score >= high_relevance_threshold: 1 chunk
-           - score >= strong_relevance_threshold: 2 chunks
-           - score >= similarity_threshold: max 3 chunks
+        Hybrid retrieval pipeline:
+        1. Normalize query + extract content keywords
+        2. Vector search candidate pool in ChromaDB (cosine)
+        3. Lexical coverage scoring + hybrid reranking
+        4. Relevance gate (semantic threshold OR lexical override)
+        5. Near-duplicate and identical chunk removal
+        6. Adaptive context sizing on hybrid score (1-3 chunks)
         """
         normalized_query = normalize_query_text(query)
         if not normalized_query:
             return []
+
+        keywords = extract_query_keywords(normalized_query)
 
         # 1. Embed query
         query_embedding = embedding_service.embed_text(normalized_query)
@@ -78,7 +103,7 @@ class RetrieverService:
         # 2. Query ChromaDB with optional document scope filter
         raw_results = vector_store_service.search(
             query_embedding=query_embedding,
-            top_k=self.top_k,
+            top_k=self.candidate_pool_size,
             document_id_filter=document_id_filter
         )
 
@@ -86,25 +111,54 @@ class RetrieverService:
             logger.info("ChromaDB returned 0 results.")
             return []
 
-        # 3. Sort by similarity descending
-        raw_results.sort(key=lambda x: x["similarity"], reverse=True)
-        top_score = raw_results[0]["similarity"]
+        # 3. Score lexical coverage + hybrid rank for every candidate
+        for res in raw_results:
+            coverage, matched_terms = calculate_keyword_coverage(keywords, res["text"])
+            res["coverage"] = coverage
+            res["matched_terms"] = matched_terms
+            res["hybrid"] = _hybrid_score(res["similarity"], coverage)
+            res["_cos"] = res["similarity"]
 
-        # Relevance gate
-        if top_score < self.similarity_threshold:
+        top_cosine = max(res["similarity"] for res in raw_results)
+
+        # Best grounded candidate (highest coverage among reasonably similar chunks)
+        grounded_candidates = [r for r in raw_results if r["similarity"] >= self.lexical_override_min_cosine]
+        best_grounded = None
+        if grounded_candidates:
+            best_grounded = max(grounded_candidates, key=lambda r: (r["coverage"], r["matched_terms"], r["hybrid"]))
+
+        # 4. Relevance gate: a query is supported if
+        #    (a) the top cosine clears the semantic gate threshold, OR
+        #    (b) a candidate both clears the lexical override (it essentially contains
+        #        the answer terms) and is similar enough to the query.
+        supported = top_cosine >= self.semantic_gate_threshold
+        if not supported and best_grounded is not None:
+            override_ok = (
+                best_grounded["similarity"] >= self.lexical_override_min_cosine
+                and best_grounded["coverage"] >= self.lexical_override_min_coverage
+                and best_grounded["matched_terms"] >= self.lexical_override_min_terms
+            )
+            if override_ok:
+                supported = True
+                logger.info(
+                    f"Lexical override accepted: cosine={best_grounded['similarity']:.3f}, "
+                    f"coverage={best_grounded['coverage']:.2f}, terms={best_grounded['matched_terms']}."
+                )
+
+        if not supported:
             logger.info(
-                f"Relevance Gate: Top candidate similarity ({top_score:.3f}) is below "
-                f"threshold ({self.similarity_threshold}). Halting retrieval with 0 LLM calls."
+                f"Relevance Gate: Top cosine ({top_cosine:.3f}) is below semantic gate "
+                f"({self.semantic_gate_threshold}) with no grounded override. Halting retrieval."
             )
             return []
 
-        # 4. Remove exact and near-duplicates (> 75% overlap)
-        deduped_candidates: list[dict] = []
-        for candidate in raw_results:
-            sim = candidate["similarity"]
-            if sim < self.similarity_threshold:
-                continue
+        # Filter out weak candidates, then sort by hybrid score descending
+        candidates = [r for r in raw_results if r["similarity"] >= self.min_candidate_cosine]
+        candidates.sort(key=lambda x: (x["hybrid"], x["_cos"]), reverse=True)
 
+        # 5. Remove exact and near-duplicates (> 75% overlap)
+        deduped_candidates: list[dict] = []
+        for candidate in candidates:
             text = candidate["text"]
             is_duplicate = False
             for existing in deduped_candidates:
@@ -123,20 +177,18 @@ class RetrieverService:
         if not deduped_candidates:
             return []
 
-        # 5. Adaptive Context Sizing
-        # - Very high relevance: send 1 chunk
-        # - Strong relevance: send 2 chunks
-        # - Moderate relevance: send at most final_context_chunks (3)
-        if top_score >= self.high_relevance_threshold:
+        # 6. Adaptive Context Sizing on the hybrid score
+        top_hybrid = deduped_candidates[0]["hybrid"]
+        if top_hybrid >= self.hybrid_high_relevance_threshold:
             target_chunks_count = 1
-        elif top_score >= self.strong_relevance_threshold:
+        elif top_hybrid >= self.hybrid_strong_relevance_threshold:
             target_chunks_count = 2
         else:
             target_chunks_count = self.final_context_chunks
 
         selected_candidates = deduped_candidates[:target_chunks_count]
 
-        # 6. Format into SourceEvidence objects
+        # 7. Format into SourceEvidence objects
         sources: list[SourceEvidence] = []
         for res in selected_candidates:
             meta = res["metadata"]
@@ -148,13 +200,15 @@ class RetrieverService:
                     section=meta.get("section", "General"),
                     evidence=res["text"],
                     chunk_id=res["chunk_id"],
-                    similarity_score=round(res["similarity"], 4)
+                    similarity_score=round(res["hybrid"], 4),
+                    semantic_score=round(res["similarity"], 4),
+                    coverage_score=round(res["coverage"], 4)
                 )
             )
 
         logger.info(
-            f"Adaptive Retrieval: Top score {top_score:.3f} -> Selected {len(sources)} "
-            f"evidence chunk(s) (Limit: {target_chunks_count})."
+            f"Hybrid Retrieval: top cosine {top_cosine:.3f}, top hybrid {top_hybrid:.3f} "
+            f"-> Selected {len(sources)} evidence chunk(s) (Limit: {target_chunks_count})."
         )
         return sources
 

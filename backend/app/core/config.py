@@ -28,9 +28,33 @@ class Settings(BaseSettings):
     # Retrieval & Adaptive Context Parameters
     TOP_K: int = 5
     FINAL_CONTEXT_CHUNKS: int = 3
-    SIMILARITY_THRESHOLD: float = 0.48         # Calibrated relevance cutoff for MiniLM
-    STRONG_RELEVANCE_THRESHOLD: float = 0.54   # Select 2 chunks if score >= this
-    HIGH_RELEVANCE_THRESHOLD: float = 0.62     # Select 1 chunk if score >= this
+    SIMILARITY_THRESHOLD: float = 0.48         # Cosine relevance cutoff for MiniLM
+    STRONG_RELEVANCE_THRESHOLD: float = 0.54   # Cosine: select 2 chunks if score >= this
+    HIGH_RELEVANCE_THRESHOLD: float = 0.62     # Cosine: select 1 chunk if score >= this
+
+    # Hybrid Retrieval (semantic + lexical grounding)
+    # Candidate pool fetched from ChromaDB before reranking.
+    CANDIDATE_POOL_SIZE: int = 25
+    # hybrid = min(1.0, cosine + COVERAGE_BONUS_WEIGHT * coverage^2)
+    COVERAGE_BONUS_WEIGHT: float = 0.50
+    # Drop candidates below this raw cosine similarity after reranking.
+    MIN_CANDIDATE_COSINE: float = 0.20
+    # Lower bounds the LEXICAL_OVERRIDE (below sketch) considers candidates.
+    LEXICAL_OVERRIDE_MIN_COSINE: float = 0.25
+    LEXICAL_OVERRIDE_MIN_COVERAGE: float = 0.85
+    LEXICAL_OVERRIDE_MIN_TERMS: int = 2
+    # Semantic gate: a query is supported when its top cosine reaches this bar
+    # OR a candidate satisfies the lexical override (grounded but diluted chunk).
+    SEMANTIC_GATE_THRESHOLD: float = 0.55
+    # Adaptive sizing on the hybrid score (1/2/3 chunks).
+    HYBRID_HIGH_RELEVANCE_THRESHOLD: float = 0.85
+    HYBRID_STRONG_RELEVANCE_THRESHOLD: float = 0.70
+
+    # Evidence Confidence (grounding-aware)
+    CONFIDENCE_MIN_HYBRID: float = 0.45
+    CONFIDENCE_MIN_COVERAGE: float = 0.50
+    CONFIDENCE_HIGH_COVERAGE: float = 0.85
+    CONFIDENCE_HIGH_SEMANTIC: float = 0.40
 
     # Ingestion & Chunking (Character-based)
     CHUNK_SIZE: int = 1200

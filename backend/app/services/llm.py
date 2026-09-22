@@ -46,6 +46,16 @@ _WEEKDAYS = {
 }
 _TIME_TOKEN_PATTERN = re.compile(r"\b\d{1,2}:\d{2}\b")
 
+_TITLE_CASE_PROSE_STARTERS = {
+    "the", "a", "an", "this", "these", "those", "that", "there", "here",
+    "we", "you", "your", "our", "they", "their", "it", "its",
+    "in", "on", "at", "to", "for", "with", "from", "by", "as", "of", "and",
+    "if", "when", "while", "although", "since", "so", "not", "no", "all",
+    "any", "each", "every", "some", "such", "one", "two", "three",
+    "employees", "employers", "managers", "supervisors", "please",
+    "must", "may", "will", "shall", "have", "has", "had", "first",
+}
+
 
 def _is_fallback_header_line(line: str) -> bool:
     """Detects document/section title lines that must never appear in an answer."""
@@ -55,7 +65,20 @@ def _is_fallback_header_line(line: str) -> bool:
         return True
     if line.isupper():
         return True
-    return "ref:" in line.lower()
+    if "ref:" in line.lower():
+        return True
+    # Short Title Case headings (e.g. "Hours of Work", "Flex Time and Telecommuting")
+    words = re.findall(r"[A-Za-z]+", line)
+    if not (1 <= len(words) <= 8) or not line[0].isupper():
+        return False
+    if re.search(r"[.!?]\s*$", line):
+        return False
+    capitalized = sum(1 for w in words if w and w[0].isupper())
+    if capitalized * 10 < len(words) * 6:
+        return False
+    if words[0].lower() in _TITLE_CASE_PROSE_STARTERS:
+        return False
+    return True
 
 
 def _is_fallback_footer_line(line: str) -> bool:

@@ -6,6 +6,65 @@ Cleans raw document text, normalizes Unicode artifacts, and extracts structured 
 import re
 
 
+_COVERAGE_STOPWORDS = {
+    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
+    "what", "which", "who", "whom", "how", "where", "when", "why",
+    "of", "to", "for", "with", "on", "at", "in", "from", "by", "as",
+    "and", "or", "but", "if", "then", "than", "so",
+    "it", "its", "this", "that", "these", "those", "there", "here",
+    "do", "did", "does", "can", "could", "may", "might", "would", "should",
+    "shall", "will", "i", "we", "you", "your", "our", "me", "my", "us",
+    "they", "them", "their", "please", "tell", "explain", "about", "per",
+    "many", "much", "some", "any", "all", "each", "every", "most", "more",
+    "not", "no", "yes", "have", "has", "had", "hasnt", "dont", "didnt",
+    "doesnt", "cant", "wont", "shouldnt", "instead", "also", "only", "just",
+}
+
+
+def extract_query_keywords(text: str) -> list[str]:
+    """
+    Extracts content keywords from a query, dropping stopwords.
+    Used by the hybrid retriever to compute lexical grounding (coverage).
+    """
+    words = re.findall(r"[a-zA-Z]+", (text or "").lower())
+    seen: set[str] = set()
+    keywords: list[str] = []
+    for w in words:
+        if w in _COVERAGE_STOPWORDS or len(w) <= 1 or w in seen:
+            continue
+        seen.add(w)
+        keywords.append(w)
+    return keywords
+
+
+def calculate_keyword_coverage(keywords: list[str], text: str) -> tuple[float, int]:
+    """
+    Computes lexical grounding of a chunk against the query keywords.
+
+    Returns (coverage, matched_count) where coverage is the fraction of query
+    content keywords that appear in the chunk (token-exact or stem/prefix match).
+    A high coverage strongly indicates the chunk literally contains the answer.
+    """
+    if not keywords or not text:
+        return 0.0, 0
+
+    tokens = set(re.findall(r"[a-zA-Z]+", text.lower()))
+    matched = 0
+    for qw in keywords:
+        if qw in tokens:
+            matched += 1
+            continue
+        if len(qw) >= 4 and any(
+            t.startswith(qw) or qw.startswith(t)
+            for t in tokens
+            if len(t) >= 4
+        ):
+            matched += 1
+
+    coverage = matched / len(keywords)
+    return coverage, matched
+
+
 def clean_text(text: str) -> str:
     """
     Cleans raw extracted text from PDF/TXT:
