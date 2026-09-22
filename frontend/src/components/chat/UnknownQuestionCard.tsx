@@ -2,6 +2,8 @@ import React from 'react';
 import { HelpCircle, Search, Lightbulb } from 'lucide-react';
 import { ChatMessage } from '../../types';
 
+const UNKNOWN_ANSWER = 'Information not available in the uploaded documents.';
+
 interface UnknownQuestionCardProps {
   message: ChatMessage;
   onAskSuggestion?: (question: string) => void;
@@ -28,7 +30,7 @@ export const UnknownQuestionCard: React.FC<UnknownQuestionCardProps> = ({
             </span>
           </div>
           <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-            {message.content}
+            {UNKNOWN_ANSWER}
           </p>
         </div>
       </div>

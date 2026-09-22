@@ -6,14 +6,17 @@ Extremely minimal and token-optimized: zero instruction bloat, zero CoT overhead
 from app.models.schemas import SourceEvidence
 
 
-SYSTEM_PROMPT = """You answer only from the provided evidence.
-If the evidence does not support the answer, return not_found.
+SYSTEM_PROMPT = """Answer the user's question directly using only the provided evidence.
+Return ONLY the answer, with no document title, section heading, source text, quotation, preamble, explanation, reasoning, or citation.
+Prefer one short sentence.
+The retrieved evidence is only supporting context; never copy the retrieved chunk into the answer.
+Do not guess or use outside knowledge.
+If the evidence does not support the question, set status to not_found and return exactly: Information not available in the uploaded documents.
 Return valid structured JSON.
 Cite only provided source IDs in source_ids.
-Be concise (1-3 sentences).
 
 Schema:
-{"status": "answered" | "not_found", "answer": "...", "source_ids": ["..."]}"""
+{"status": "answered" | "not_found", "answer": "<one short sentence>" | "Information not available in the uploaded documents.", "source_ids": ["..."]}"""
 
 
 def build_context_block(sources: list[SourceEvidence]) -> str:

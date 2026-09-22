@@ -108,7 +108,7 @@ def test_unknown_question_anti_hallucination():
     assert data["status"] == "not_found"
     assert data["confidence"] == "low"
     assert len(data["sources"]) == 0
-    assert "couldn't find" in data["answer"].lower() or "not found" in data["answer"].lower()
+    assert data["answer"] == "Information not available in the uploaded documents."
 
 
 def test_empty_question_rejected():

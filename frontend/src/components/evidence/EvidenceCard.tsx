@@ -24,7 +24,7 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({ evidence }) => {
                 <MapPin className="w-3 h-3 text-brand-500" />
                 Page {evidence.page}
               </span>
-              {evidence.similarity_score && (
+              {typeof evidence.similarity_score === 'number' && (
                 <>
                   <span>•</span>
                   <span>Match: {(evidence.similarity_score * 100).toFixed(0)}%</span>
@@ -35,7 +35,7 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({ evidence }) => {
         </div>
 
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">
-          {evidence.chunk_id.split('-').slice(1).join('-')}
+          {evidence.chunk_id ? evidence.chunk_id.split('-').slice(1).join('-') : '—'}
         </span>
       </div>
 
@@ -63,7 +63,7 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({ evidence }) => {
       <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
         <span className="flex items-center gap-1">
           <Hash className="w-3 h-3" />
-          <span>Chunk ID: {evidence.chunk_id}</span>
+          <span>Chunk ID: {evidence.chunk_id || '—'}</span>
         </span>
         <span>Local ChromaDB</span>
       </div>

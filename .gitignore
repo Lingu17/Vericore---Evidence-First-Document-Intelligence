@@ -9,4 +9,8 @@ backend/.venv/
 frontend/node_modules/
 __pycache__/
 *.pyc
-EOF
+EOF__pycache__/
+*.pyc
+backend/chroma_db/
+frontend/dist/
+.env

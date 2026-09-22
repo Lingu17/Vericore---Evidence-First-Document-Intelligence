@@ -60,18 +60,10 @@ async def query_knowledge_base(request: ChatRequest):
         logger.info(f"Query '{question}' produced no high-relevance evidence. Returning NOT_FOUND.")
         return ChatResponse(
             status=ChatStatus.NOT_FOUND,
-            answer=(
-                "I couldn't find supporting information for this question in the uploaded documents.\n\n"
-                "No evidence met the required relevance threshold. Please try asking about topics "
-                "covered in your uploaded documents."
-            ),
+            answer="Information not available in the uploaded documents.",
             confidence=ConfidenceLevel.LOW,
             sources=[],
-            suggested_followups=[
-                "What policies are detailed in the uploaded documents?",
-                "What are the main employee benefits?",
-                "What is the company leave entitlement?"
-            ]
+            suggested_followups=[]
         )
 
     # 3. Generate grounded answer via LLM Provider

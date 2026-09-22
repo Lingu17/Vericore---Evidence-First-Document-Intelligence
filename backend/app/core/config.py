@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     USE_MOCK_LLM: bool = False
 
     # Generation Parameters (Token Optimization)
-    MAX_OUTPUT_TOKENS: int = 250
+    MAX_OUTPUT_TOKENS: int = 128
     TEMPERATURE: float = 0.0
     MAX_HISTORY_MESSAGES: int = 2
 

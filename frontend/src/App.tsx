@@ -47,6 +47,11 @@ export function App() {
     setIsEvidencePanelOpen(true);
   };
 
+  const handleCloseEvidencePanel = () => {
+    setIsEvidencePanelOpen(false);
+    closeEvidence();
+  };
+
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#F8FAFC]">
       {/* Top Header */}
@@ -88,7 +93,7 @@ export function App() {
         <div className="hidden lg:block h-full">
           <EvidencePanel
             selectedEvidence={selectedEvidence}
-            onClose={() => setIsEvidencePanelOpen(false)}
+            onClose={handleCloseEvidencePanel}
             isOpen={isEvidencePanelOpen}
           />
         </div>

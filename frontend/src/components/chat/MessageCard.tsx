@@ -83,16 +83,23 @@ export const MessageCard: React.FC<MessageCardProps> = ({
                     className="group flex flex-col justify-between p-3 rounded-xl border border-slate-200/80 bg-slate-50/60 hover:bg-brand-50/50 hover:border-brand-300 transition-all cursor-pointer shadow-subtle select-none"
                   >
                     <div>
-                      <div className="flex items-center justify-between gap-1.5 mb-1">
+                      <div className="flex items-center gap-1.5 mb-1">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <FileText className="w-3.5 h-3.5 text-brand-600 shrink-0" />
                           <span className="text-xs font-semibold text-slate-900 truncate" title={src.filename}>
-                            {src.filename}
+                            {src.filename || 'Untitled'}
                           </span>
                         </div>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200/90 text-slate-700 shrink-0">
-                          Page {src.page}
-                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200/90 text-slate-700">
+                            Page {src.page ?? '?'}
+                          </span>
+                          {typeof src.similarity_score === 'number' && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">
+                              {Math.round(src.similarity_score * 100)}%
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {src.section && (
@@ -102,7 +109,7 @@ export const MessageCard: React.FC<MessageCardProps> = ({
                       )}
 
                       <p className="text-xs text-slate-600 line-clamp-2 italic leading-snug">
-                        "{src.evidence}"
+                        {src.evidence ? `"${src.evidence}"` : 'Excerpt unavailable'}
                       </p>
                     </div>
 

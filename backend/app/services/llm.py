@@ -30,6 +30,104 @@ FOLLOW_UP_PRONOUNS = {
 }
 
 
+_FALLBACK_STOPWORDS = {
+    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
+    "what", "which", "who", "whom", "how", "where", "when", "why",
+    "of", "to", "for", "with", "on", "at", "in", "from", "by", "as",
+    "and", "or", "but", "it", "its", "this", "that", "these", "those",
+    "do", "did", "does", "can", "could", "may", "might", "would", "should",
+    "shall", "will", "i", "we", "you", "your", "our", "me", "my", "us",
+    "they", "them", "their", "there", "please", "tell", "explain", "about"
+}
+
+_TIME_QUESTION_HINTS = {"hours", "hour", "time", "schedule", "working"}
+_WEEKDAYS = {
+    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
+}
+_TIME_TOKEN_PATTERN = re.compile(r"\b\d{1,2}:\d{2}\b")
+
+
+def _is_fallback_header_line(line: str) -> bool:
+    """Detects document/section title lines that must never appear in an answer."""
+    if len(line) > 140:
+        return False
+    if re.match(r"^(?:\d+(?:\.\d+)*|section\s+\d+|article\s+\d+)[.):\s-]+", line, re.IGNORECASE):
+        return True
+    if line.isupper():
+        return True
+    return "ref:" in line.lower()
+
+
+def _is_fallback_footer_line(line: str) -> bool:
+    """Detects page footers that must never appear in an answer."""
+    if len(line) > 140:
+        return False
+    if re.search(r"-?\s*page\s+\d+", line, re.IGNORECASE):
+        return True
+    if line.isupper():
+        return True
+    return False
+
+
+def _clean_evidence_text(evidence: str) -> str:
+    """Strips document headers/section headings/footers from a retrieved chunk."""
+    lines = [ln.strip() for ln in (evidence or "").replace("\r", "").splitlines()]
+    while lines and (not lines[0] or _is_fallback_header_line(lines[0])):
+        lines.pop(0)
+    while lines and (not lines[-1] or _is_fallback_footer_line(lines[-1])):
+        lines.pop()
+    return " ".join(lines).strip()
+
+
+def _fallback_content_words(question: str) -> list[str]:
+    """Extracts content keywords from the user question (stopwords removed)."""
+    words = re.findall(r"[a-zA-Z]+", (question or "").lower())
+    return [w for w in words if w not in _FALLBACK_STOPWORDS and len(w) > 1]
+
+
+def _extract_direct_answer(question: str, evidence: str) -> str | None:
+    """
+    Deterministically extracts the single sentence from a retrieved chunk that
+    best addresses the question. Returns None when no reliable answer exists.
+    """
+    question_words = _fallback_content_words(question)
+    if not question_words:
+        return None
+
+    body = _clean_evidence_text(evidence)
+    if not body:
+        return None
+
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", body) if s.strip()]
+
+    best_sentence: str | None = None
+    best_score = 0
+    for sentence in sentences:
+        if len(sentence) > 320:
+            continue
+        tokens = re.findall(r"[a-zA-Z0-9:'.\-]+", sentence.lower())
+        score = 0
+        for qw in question_words:
+            if any(
+                tok == qw
+                or (len(qw) >= 4 and tok.startswith(qw))
+                or (len(tok) >= 4 and qw.startswith(tok))
+                for tok in tokens
+            ):
+                score += 1
+        has_time = bool(_TIME_TOKEN_PATTERN.search(sentence))
+        has_weekday = any(day in sentence.lower() for day in _WEEKDAYS)
+        if (has_time or has_weekday) and any(hint in question_words for hint in _TIME_QUESTION_HINTS):
+            score += 1
+        if score > best_score:
+            best_score = score
+            best_sentence = sentence
+
+    if best_score >= 2 and best_sentence:
+        return best_sentence
+    return None
+
+
 def is_follow_up_question(question: str) -> bool:
     """Detects whether a question is dependent on previous conversation history."""
     q_lower = question.lower()
@@ -124,11 +222,12 @@ class GroqProvider(LLMProvider):
         question: str,
         sources: list[SourceEvidence]
     ) -> ChatResponse:
-        """Deterministic local fallback synthesizing exact excerpts from retrieved evidence."""
+        """Deterministic local fallback: yields a single direct answer sentence grounded in evidence."""
+        not_found_answer = "Information not available in the uploaded documents."
         if not sources:
             return ChatResponse(
                 status=ChatStatus.NOT_FOUND,
-                answer="I couldn't find supporting information for this question in the uploaded documents.",
+                answer=not_found_answer,
                 confidence=ConfidenceLevel.LOW,
                 sources=[]
             )
@@ -137,22 +236,28 @@ class GroqProvider(LLMProvider):
         if confidence == ConfidenceLevel.LOW:
             return ChatResponse(
                 status=ChatStatus.NOT_FOUND,
-                answer="I couldn't find sufficient supporting evidence in the uploaded documents.",
+                answer=not_found_answer,
                 confidence=ConfidenceLevel.LOW,
                 sources=[]
             )
 
-        top_source = sources[0]
-        # Keep answer concise (max ~250 chars)
-        answer_text = top_source.evidence[:240].strip()
-        if len(top_source.evidence) > 240:
-            answer_text += "..."
+        # Extract the single evidence sentence that directly addresses the question.
+        # Never reproduce the raw chunk (titles/headings/footers are stripped).
+        for source in sources:
+            answer_text = _extract_direct_answer(question, source.evidence)
+            if answer_text:
+                return ChatResponse(
+                    status=ChatStatus.ANSWERED,
+                    answer=answer_text,
+                    confidence=confidence,
+                    sources=sources
+                )
 
         return ChatResponse(
-            status=ChatStatus.ANSWERED,
-            answer=answer_text,
-            confidence=confidence,
-            sources=sources
+            status=ChatStatus.NOT_FOUND,
+            answer=not_found_answer,
+            confidence=ConfidenceLevel.LOW,
+            sources=[]
         )
 
     def generate_answer(
@@ -166,7 +271,7 @@ class GroqProvider(LLMProvider):
         if not sources:
             return ChatResponse(
                 status=ChatStatus.NOT_FOUND,
-                answer="I couldn't find supporting information for this question in the uploaded documents.",
+                answer="Information not available in the uploaded documents.",
                 confidence=ConfidenceLevel.LOW,
                 sources=[]
             )
@@ -225,7 +330,7 @@ class GroqProvider(LLMProvider):
             if status == ChatStatus.NOT_FOUND:
                 res = ChatResponse(
                     status=ChatStatus.NOT_FOUND,
-                    answer=answer or "I couldn't find supporting information in the uploaded documents.",
+                    answer=answer or "Information not available in the uploaded documents.",
                     confidence=ConfidenceLevel.LOW,
                     sources=[]
                 )

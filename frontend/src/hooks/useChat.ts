@@ -16,6 +16,7 @@ export function useChat() {
   };
 
   const closeEvidence = () => {
+    setSelectedEvidence(null);
     setIsEvidenceDrawerOpen(false);
   };
 
@@ -67,11 +68,7 @@ export function useChat() {
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
-
-      // If we have sources, automatically preview the top source in the evidence panel
-      if (response.sources && response.sources.length > 0) {
-        setSelectedEvidence(response.sources[0]);
-      }
+      setSelectedEvidence(null);
     } catch (err: any) {
       setChatError(err.message || 'Failed to generate answer from documents.');
     } finally {
