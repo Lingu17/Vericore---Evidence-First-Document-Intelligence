@@ -1,0 +1,12 @@
+cat >> .gitignore <<'EOF'
+.env
+.env.*
+!.env.example
+
+backend/.env
+backend/chroma_db/
+backend/.venv/
+frontend/node_modules/
+__pycache__/
+*.pyc
+EOF
