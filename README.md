@@ -1,223 +1,342 @@
-# DocuPilot
+Vericore
 
-> **"Ask your documents. Verify every answer."**
+Evidence-First Document Intelligence
 
-> *Evidence-First Document Intelligence for Business Teams.*
+<p align="center">
+  <strong>Upload documents. Ask questions. Verify every answer against the source.</strong>
+</p>
 
-[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg?style=flat-square)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/Frontend-React_18_%2B_Vite-61DAFB.svg?style=flat-square)](https://react.dev/)
-[![ChromaDB](https://img.shields.io/badge/Vector_DB-ChromaDB_Local-FF6F00.svg?style=flat-square)](https://www.trychroma.com/)
-[![Sentence-Transformers](https://img.shields.io/badge/Embeddings-MiniLM--L6--v2_Local-blue.svg?style=flat-square)](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
-[![Groq](https://img.shields.io/badge/LLM-Groq_API-F55036.svg?style=flat-square)](https://groq.com/)
-[![Tests](https://img.shields.io/badge/Tests-18_Passed-16A34A.svg?style=flat-square)]()
+<p align="center">
+  A focused RAG workspace for grounded document Q&A, source attribution, and evidence inspection.
+</p>
 
----
+<p align="center">
+  <img src="https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-2563EB?style=for-the-badge" alt="React + TypeScript">
+  <img src="https://img.shields.io/badge/Backend-FastAPI-059669?style=for-the-badge" alt="FastAPI">
+  <img src="https://img.shields.io/badge/RAG-Hybrid%20Retrieval-7C3AED?style=for-the-badge" alt="Hybrid RAG">
+  <img src="https://img.shields.io/badge/Tests-18%20Passed-16A34A?style=for-the-badge" alt="18 tests passed">
+</p>
 
-## Overview
+Product Preview
 
-**DocuPilot** is an evidence-first document intelligence workspace designed for business documents and knowledge workflows.
+Home / Landing
 
-Rather than functioning as an unconstrained chat wrapper, DocuPilot answers questions using retrieved and verified document context. Every grounded answer is coupled with a transparent, clickable **Evidence Trail** showing the source file, page number, section title, and stored evidence passage used for the answer.
 
-When supporting information does not exist in the uploaded documents, DocuPilot deterministically responds with:
 
-> **"Information not available in the uploaded documents."**
+Document Workspace
 
-This prevents the system from confidently inventing unsupported information.
 
-![DocuPilot Architecture](docs/architecture.png)
 
----
+Evidence Trail
 
-## Problem
 
-Business users often spend significant time searching through lengthy documents such as PDF policies, employee handbooks, SOPs, benefits documents, and internal agreements.
 
-Traditional AI document assistants can introduce several problems:
+Repository assets: save the three UI screenshots above inside docs/screenshots/ using the exact filenames shown.
 
-1. **Hallucinations & Confabulation:** LLMs may generate plausible-sounding information when the required information is missing.
+The architecture image is included below and should remain at docs/architecture.png.
 
-2. **Untraceable Answers:** Answers may not clearly identify the document, page, section, or evidence used to generate them.
+What is Vericore?
 
-3. **Unnecessary Cloud Costs:** Sending complete documents or large contexts to external embedding and LLM APIs can increase token consumption and API usage.
+Vericore is an evidence-first document intelligence workspace for business documents and knowledge workflows.
 
-4. **Limited Evidence Inspection:** Simple document chat interfaces may provide answers without giving users a convenient way to inspect the supporting evidence.
+Instead of behaving like an unconstrained chat wrapper, Vericore answers questions from retrieved and verified document context. Every grounded answer can be inspected through an Evidence Trail showing the source file, page, section, match information, and stored evidence passage used for the response.
 
----
+When the required information is not sufficiently supported by the uploaded documents, Vericore returns:
 
-## Solution
+Information not available in the uploaded documents.
 
-DocuPilot provides an **Evidence-First RAG Architecture**:
+The goal is simple:
 
-- **Local Embeddings (`all-MiniLM-L6-v2`) & ChromaDB:** Embeddings and vector storage run locally, avoiding external embedding API costs.
+Retrieve → Answer → Verify
 
-- **Hybrid Retrieval & Relevance Gating:** Semantic similarity is combined with keyword coverage to improve retrieval. Queries with insufficient evidence are rejected before unnecessary LLM generation.
+Why Vericore?
 
-- **Verified Attribution:** The LLM receives and returns internal `[SOURCE_ID=...]` identifiers. The backend resolves these identifiers against stored document metadata before displaying evidence.
+Business information is often distributed across:
 
-- **Grounded Generation:** Only selected document evidence is provided to the LLM instead of sending complete uploaded documents.
+Employee handbooks
 
-- **B2B Workspace:** A desktop-first 3-column layout containing Document Manager, Grounded Chat Timeline, and an inspectable Evidence Drawer.
+Company policies
 
----
+SOPs
 
-## Key Features
+Benefits documents
 
-- **Document Ingestion (PDF & TXT):** Page-by-page PDF extraction using PyMuPDF with text normalization and heading detection.
+Internal agreements
 
-- **SHA-256 Deduplication:** Duplicate document uploads are detected using content hashing, preventing unnecessary re-processing and embedding.
+Operational documentation
 
-- **Intelligent Page-Aware Chunking:** Text is split along paragraph, sentence, and section boundaries while preserving `document_id`, `filename`, `page`, `section`, and `chunk_id`.
+Reports and knowledge bases
 
-- **Local Embeddings:** Fast local embeddings using `sentence-transformers/all-MiniLM-L6-v2` with a 384-dimensional vector representation.
+Searching these documents manually can be slow. A conventional AI assistant can make search easier, but an answer without inspectable evidence can be difficult to review.
 
-- **Persistent ChromaDB Vector Store:** Persistent local vector storage with similarity search and document-level deletion.
+Vericore puts the retrieval and evidence layer first.
 
-- **Hybrid Retrieval:** Combines semantic similarity with keyword coverage and reranking to improve retrieval for both natural-language queries and precise policy terms.
+The core idea
 
-- **Adaptive Context Sizing:** Dynamically selects a small number of relevant chunks based on retrieval relevance.
+Document
+   ↓
+Extract
+   ↓
+Chunk
+   ↓
+Embed
+   ↓
+Retrieve
+   ↓
+Verify
+   ↓
+Generate
+   ↓
+Inspect Evidence
 
-- **Answer Caching:** In-memory hashing avoids repeated LLM calls for identical questions with the same document scope and evidence.
+Key Features
 
-- **Evidence Confidence Badging:** Deterministic High / Medium / Low evidence confidence based on retrieval and grounding signals rather than fabricated probability percentages.
+Feature
 
-- **Smart Suggested Questions:** Generates useful document questions from section headings and document structure without requiring LLM calls during ingestion.
+Description
 
-- **Evidence Trail Side Drawer:** Click any source badge to inspect the source filename, page, section, match information, exact stored excerpt, and chunk identifier.
+📄 PDF & TXT ingestion
 
-- **Information Not Found Cards:** Clear visual states for unsupported questions instead of fabricated answers.
+Extracts and indexes business documents
 
-- **Multi-Document Reasoning:** Retrieves and synthesizes evidence across multiple uploaded documents when relevant.
+🔎 Semantic search
 
-- **Lightweight Conversation Memory:** Supports contextual follow-up questions while limiting the amount of previous conversation passed to the LLM.
+Finds conceptually relevant document passages
 
----
+⚡ Hybrid retrieval
 
-## Architecture
+Combines semantic similarity with keyword coverage
 
-```text
-User
- │
- ▼
-React + TypeScript UI
- │
- ▼
-FastAPI Backend
- │
- ├──────────────────────────────────────┐
- │                                      │
- ▼                                      ▼
-Document Processing                Query Processing
- │                                      │
- ├── PDF → PyMuPDF                      ├── Normalize Query
- └── TXT → Text Parser                  │
-                                        ▼
-                                MiniLM Query Embedding
- │                                      │
- ▼                                      ▼
-Section-Aware Chunking            ChromaDB Search
- │                                      │
- ▼                                      ▼
-MiniLM Document Embeddings         Candidate Pool
- │                                      │
- └───────────────► ChromaDB ◄───────────┘
-                         │
-                         ▼
-                Hybrid Re-ranking
-                 │              │
-                 │              ├── Keyword Coverage
-                 │              │
-                 └── Semantic Similarity
-                         │
-                         ▼
-                Relevance / Grounding Gate
-                         │
-              ┌──────────┴──────────┐
-              │                     │
-              ▼                     ▼
-     Insufficient Evidence    Sufficient Evidence
-              │                     │
-              ▼                     ▼
-     Deterministic           Evidence Selection
-       NOT_FOUND                    │
-                                    ▼
-                              Answer Cache
-                                    │
-                          ┌─────────┴─────────┐
-                          │                   │
-                       Cache HIT          Cache MISS
-                          │                   │
-                          │                   ▼
-                          │            Grounded Prompt
-                          │                   │
-                          │                   ▼
-                          │            Groq GPT-OSS 20B
-                          │                   │
-                          │                   ▼
-                          │          Source ID Validation
-                          │                   │
-                          └─────────┬─────────┘
-                                    ▼
-                         Verified Answer + Evidence
-                                    │
-                                    ▼
-                            React Evidence Trail
+🧠 RAG
+
+Generates answers from retrieved evidence
+
+🛡️ Grounding gate
+
+Rejects insufficient evidence before generation
+
+📌 Source attribution
+
+Preserves document, page, section, and chunk metadata
+
+🔍 Evidence Trail
+
+Inspect the exact stored passage behind an answer
+
+🚫 Unknown handling
+
+Clearly states when information is unavailable
+
+📚 Multi-document retrieval
+
+Searches across multiple indexed documents
+
+💬 Conversation memory
+
+Supports limited contextual follow-up questions
+
+💡 Suggested questions
+
+Generates useful questions from document structure
+
+♻️ SHA-256 deduplication
+
+Avoids reprocessing identical documents
+
+🚀 Answer caching
+
+Avoids repeated generation for identical evidence-backed queries
+
+📊 Evidence confidence
+
+Shows retrieval-based confidence signals
+
+🖥️ B2B workspace
+
+Desktop-first document + chat + evidence interface
+
+Product Workflow
+
+┌───────────────┐
+│  01  UPLOAD   │
+│ PDF / TXT     │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│  02  INDEX    │
+│ Extract       │
+│ Chunk         │
+│ Embed         │
+│ Store         │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│  03  ASK      │
+│ Natural       │
+│ language      │
+│ question      │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│  04  RETRIEVE │
+│ Semantic +    │
+│ keyword       │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│  05  VERIFY   │
+│ Relevance +   │
+│ grounding     │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│  06  ANSWER   │
+│ Grounded LLM  │
+└───────┬───────┘
+        │
+        ▼
+┌───────────────┐
+│  07  INSPECT  │
+│ Evidence      │
+│ Trail         │
+└───────────────┘
+
+Architecture
+
+
+
+Vericore follows an Evidence-First RAG Architecture:
+
+                           ┌──────────────────────┐
+                           │        User          │
+                           └──────────┬───────────┘
+                                      │
+                                      ▼
+                           ┌──────────────────────┐
+                           │ React + TypeScript   │
+                           │       Frontend       │
+                           └──────────┬───────────┘
+                                      │
+                                      ▼
+                           ┌──────────────────────┐
+                           │    FastAPI Backend   │
+                           └──────────┬───────────┘
+                                      │
+                  ┌───────────────────┴───────────────────┐
+                  │                                       │
+                  ▼                                       ▼
+       ┌─────────────────────┐                 ┌─────────────────────┐
+       │ Document Ingestion  │                 │   Query Pipeline    │
+       └──────────┬──────────┘                 └──────────┬──────────┘
+                  │                                       │
+        ┌─────────┴─────────┐                             ▼
+        │                   │                   Query Normalization
+        ▼                   ▼                             │
+     PDF/TXT             Extraction                         ▼
+        │                   │                    Local Query Embedding
+        └─────────┬─────────┘                             │
+                  ▼                                       ▼
+        Section-Aware Chunking                    ChromaDB Search
+                  │                                       │
+                  ▼                                       ▼
+        Local MiniLM Embeddings                    Candidate Pool
+                  │                                       │
+                  └───────────────┐               ┌───────┘
+                                  ▼               ▼
+                              ChromaDB     Hybrid Re-ranking
+                                               │
+                               ┌───────────────┴───────────────┐
+                               │                               │
+                               ▼                               ▼
+                     Semantic Similarity                 Keyword Coverage
+                               │                               │
+                               └───────────────┬───────────────┘
+                                               ▼
+                                   Relevance / Grounding Gate
+                                               │
+                              ┌────────────────┴────────────────┐
+                              │                                 │
+                              ▼                                 ▼
+                    Insufficient Evidence              Sufficient Evidence
+                              │                                 │
+                              ▼                                 ▼
+                    Deterministic Unknown             Evidence Selection
+                                                                  │
+                                                                  ▼
+                                                            Answer Cache
+                                                                  │
+                                                                  ▼
+                                                          Grounded Prompt
+                                                                  │
+                                                                  ▼
+                                                         Groq GPT-OSS 20B
+                                                                  │
+                                                                  ▼
+                                                        Source ID Validation
+                                                                  │
+                                                                  ▼
+                                                    Verified Answer + Evidence
+                                                                  │
+                                                                  ▼
+                                                        Evidence Trail UI
+
 Retrieval Pipeline
 
-DocuPilot follows this retrieval flow:
-
 User Question
-      │
-      ▼
+     │
+     ▼
 Query Normalization
-      │
-      ▼
+     │
+     ▼
 Local Query Embedding
-      │
-      ▼
+     │
+     ▼
 ChromaDB Semantic Search
-      │
-      ▼
+     │
+     ▼
 Candidate Pool
-      │
-      ▼
+     │
+     ▼
 Hybrid Re-ranking
-      │
-      ├── Semantic Similarity
-      │
-      └── Keyword Coverage
-      │
-      ▼
-Evidence / Relevance Gate
-      │
-      ├── Insufficient Evidence
-      │        │
-      │        ▼
-      │   Deterministic NOT_FOUND
-      │
-      └── Sufficient Evidence
-               │
-               ▼
-        Adaptive Evidence Selection
-               │
-               ▼
+     ├── Semantic Similarity
+     └── Keyword Coverage
+     │
+     ▼
+Relevance / Grounding Gate
+     │
+     ├── Insufficient Evidence
+     │        │
+     │        ▼
+     │   Deterministic NOT_FOUND
+     │
+     └── Sufficient Evidence
+              │
+              ▼
+      Adaptive Evidence Selection
+              │
+              ▼
           Answer Cache
-               │
-               ▼
-        Grounded Prompt
-               │
-               ▼
-          Groq GPT-OSS 20B
-               │
-               ▼
+              │
+              ▼
+       Grounded Prompt
+              │
+              ▼
+       Groq GPT-OSS 20B
+              │
+              ▼
       Backend Source Validation
-               │
-               ▼
-      Answer + Evidence Trail
+              │
+              ▼
+       Answer + Evidence Trail
 
 Hallucination Prevention
 
-Hallucination prevention is handled through multiple layers.
+Vericore uses multiple layers to reduce unsupported answers.
 
 1. Retrieval Before Generation
 
@@ -230,108 +349,437 @@ Only selected retrieved evidence chunks are passed to the generation step.
 Retrieval combines:
 
 Semantic similarity
+
 Keyword coverage
+
 Candidate reranking
 
-This improves retrieval for questions containing important policy terms, dates, numbers, and specific terminology.
+This helps with questions containing important policy terms, dates, numbers, and specific terminology.
 
 3. Relevance / Grounding Gate
 
-If retrieved evidence is not sufficiently relevant, the system returns the deterministic unknown response instead of asking the LLM to guess.
+If retrieved evidence is not sufficiently relevant, Vericore returns the deterministic unknown response instead of asking the LLM to guess.
+
+Information not available in the uploaded documents.
 
 4. Grounded Prompting
 
 The LLM is instructed to answer using only the supplied evidence.
 
-5. Source Validation
+5. Backend Source Validation
 
-Each retrieved chunk contains an internal source identifier.
+Retrieved chunks contain internal source identifiers.
 
-The LLM returns source identifiers, and the backend resolves those identifiers against stored document metadata.
+The LLM can return those identifiers, but the backend resolves them against stored document metadata before the Evidence Trail is rendered.
 
 This prevents generated responses from independently fabricating:
 
-Page numbers
 File names
+
+Page numbers
+
 Section names
+
 Evidence references
-6. Concise Structured Answers
 
-Answers are intentionally short and direct to reduce unnecessary generation and keep the response focused on the retrieved evidence.
+6. Concise Answers
 
-Token Optimization
+Answers are intentionally short and direct so the response stays focused on the retrieved evidence.
 
-DocuPilot is designed to minimize unnecessary LLM usage.
+Evidence Trail
 
-Local Embeddings: Uses all-MiniLM-L6-v2 locally, avoiding external embedding API calls.
-Retrieval Before Generation: Only a small number of top-scoring, deduplicated chunks are sent to Groq. Complete documents are never sent to the LLM.
-Relevance Gating: Questions with insufficient evidence are rejected before unnecessary LLM generation.
-Adaptive Evidence Selection: Highly relevant questions can use fewer evidence chunks, while moderately relevant questions can use additional supporting chunks.
-Duplicate Evidence Removal: Near-duplicate chunks are filtered before context assembly.
-Trimmed Context Payloads: Only required source metadata and extracted evidence are passed to the LLM.
-Minimal System Prompt: A short instruction-focused prompt enforces factual grounding and structured output.
-Minimal User Prompt: Clean QUESTION: and EVIDENCE: blocks reduce redundant prompt text.
-Pruned Conversation History: Standalone questions do not require previous turns. Follow-up questions retain only the most recent conversation context.
-Short Structured Output: Generation is capped at MAX_OUTPUT_TOKENS = 250 with TEMPERATURE = 0.
-Backend Confidence Calculation: Evidence confidence is calculated in Python from retrieval signals rather than asking the LLM to self-rate confidence.
-Zero-Token Suggested Questions: Suggested questions are generated deterministically from document structure without LLM calls.
-SHA-256 Ingestion Deduplication: Duplicate uploads are detected using file hashes before unnecessary re-embedding.
-Identical Query Caching: Repeated identical questions can return cached results without another LLM generation request.
+The Evidence Trail is the main product differentiator.
+
+For a grounded answer, the user can inspect:
+
+Source document
+
+Page number
+
+Section
+
+Match information
+
+Exact stored excerpt
+
+Chunk identifier
+
+Example:
+
+┌──────────────────────────────────────┐
+│ EVIDENCE TRAIL                       │
+├──────────────────────────────────────┤
+│ Source                                │
+│ Employee Handbook.pdf                 │
+│                                      │
+│ Page                                  │
+│ 14                                   │
+│                                      │
+│ Section                               │
+│ Performance Reviews                   │
+│                                      │
+│ Match                                 │
+│ Semantic + keyword evidence           │
+│                                      │
+│ Stored excerpt                        │
+│ "You will have your first performance │
+│ review at the end of your first..."   │
+└──────────────────────────────────────┘
+
+The evidence displayed in the UI comes from stored document metadata and retrieved content rather than being invented by the interface.
+
+Document Processing
+
+Vericore supports:
+
+PDF
+
+TXT
+
+For PDFs, text is extracted page by page using PyMuPDF.
+
+During ingestion:
+
+Validate the uploaded file.
+
+Compute a SHA-256 content hash.
+
+Detect duplicate documents.
+
+Extract text.
+
+Normalize text.
+
+Detect headings and sections.
+
+Split text into searchable chunks.
+
+Preserve page and document metadata.
+
+Generate local embeddings.
+
+Store vectors and metadata in ChromaDB.
+
+Each chunk preserves metadata such as:
+
+document_id
+filename
+page
+section
+chunk_id
+source_id
+text
+
+Intelligent Chunking
+
+Vericore uses section-aware chunking rather than treating a document as one large block.
+
+The chunking strategy considers:
+
+Sections
+
+Paragraphs
+
+Sentences
+
+Chunk size
+
+Chunk overlap
+
+This helps preserve useful policy context while keeping retrieval units manageable.
+
+Local Embeddings
+
+Vericore uses:
+
+sentence-transformers/all-MiniLM-L6-v2
+
+Embeddings run locally.
+
+Benefits
+
+No separate embedding API is required.
+
+Reduced external embedding dependencies.
+
+Simple local retrieval pipeline.
+
+384-dimensional vector representation.
+
+Vector Storage
+
+Vericore uses persistent ChromaDB for local vector storage.
+
+The vector store contains:
+
+Embeddings
+
+Chunk text
+
+Document metadata
+
+Page metadata
+
+Section metadata
+
+Source identifiers
+
+It supports similarity search and document-level deletion.
+
+Hybrid Retrieval
+
+Pure semantic similarity can sometimes miss exact terminology.
+
+Business documents frequently contain:
+
+Policy names
+
+Dates
+
+Numbers
+
+Specific benefit names
+
+Department terminology
+
+Exact procedural phrases
+
+Vericore therefore combines:
+
+Semantic Similarity
+        +
+Keyword Coverage
+        +
+Candidate Re-ranking
+
+This gives the retrieval layer both semantic and lexical signals.
+
+Token & LLM Usage Optimization
+
+Vericore is designed to minimize unnecessary LLM usage.
+
+Local embeddings
+
+all-MiniLM-L6-v2 runs locally.
+
+Retrieval before generation
+
+Only selected evidence chunks are sent to the LLM.
+
+Relevance gating
+
+Questions with insufficient evidence can be rejected before LLM generation.
+
+Adaptive evidence selection
+
+Highly relevant questions can use fewer chunks while less direct questions can use additional supporting evidence.
+
+Duplicate evidence removal
+
+Near-duplicate chunks are filtered before context assembly.
+
+Trimmed context payloads
+
+Only required source metadata and extracted evidence are passed to the LLM.
+
+Minimal prompts
+
+The prompt uses concise QUESTION: and EVIDENCE: blocks.
+
+Limited conversation history
+
+Standalone questions do not require previous turns. Follow-up questions retain only limited recent context.
+
+Short structured output
+
+Current configuration:
+
+MAX_OUTPUT_TOKENS=250
+TEMPERATURE=0
+
+Deterministic suggestions
+
+Suggested questions are generated from document structure without an LLM call during ingestion.
+
+SHA-256 deduplication
+
+Duplicate files are detected before unnecessary re-embedding.
+
+Answer caching
+
+Repeated identical questions with the same evidence scope can return cached results.
+
+Multi-Document Reasoning
+
+Vericore can retrieve relevant evidence across multiple uploaded documents.
+
+This enables workflows such as:
+
+Employee Handbook
+       +
+Leave Policy
+       +
+Remote Work FAQ
+       ↓
+   Single Question
+       ↓
+Relevant Evidence
+       ↓
+Grounded Answer
+
+Document scope is maintained by the retrieval layer so answers can be associated with the actual indexed sources.
+
+Suggested Questions
+
+Vericore can generate useful suggested questions from document structure and section headings.
+
+The suggestions are designed to help users discover what a document can answer without requiring an LLM call during ingestion.
+
+Conversation Memory
+
+The application supports lightweight contextual follow-up questions while limiting how much previous conversation is passed to the LLM.
+
+This keeps follow-up interactions useful without unnecessarily increasing the generation context.
+
 Technology Stack
-Backend
-Language: Python 3.10+
-Framework: FastAPI, Uvicorn
-Validation: Pydantic v2, Pydantic Settings
-Document Processing: PyMuPDF (pymupdf) for PDF, native text decoding for TXT
-Embeddings: sentence-transformers
-Embedding Model: all-MiniLM-L6-v2
-Vector Database: ChromaDB persistent local storage
-LLM Provider: Groq API
-LLM Model: openai/gpt-oss-20b
-Testing: Pytest, HTTPX
+
 Frontend
-Framework: React 18 with TypeScript
-Build Tool: Vite
-Styling: Tailwind CSS
-Icons: Lucide React
+
+Technology
+
+Purpose
+
+React 18
+
+User interface
+
+TypeScript
+
+Type-safe frontend
+
+Vite
+
+Development and production build
+
+Tailwind CSS
+
+Styling
+
+Lucide React
+
+UI icons
+
+Backend
+
+Technology
+
+Purpose
+
+Python 3.10+
+
+Backend language
+
+FastAPI
+
+API layer
+
+Uvicorn
+
+ASGI server
+
+Pydantic v2
+
+Validation
+
+PyMuPDF
+
+PDF extraction
+
+sentence-transformers
+
+Local embeddings
+
+ChromaDB
+
+Persistent vector storage
+
+Pytest
+
+Automated testing
+
+HTTPX
+
+API testing
+
+AI / Retrieval
+
+Component
+
+Technology
+
+Embedding model
+
+all-MiniLM-L6-v2
+
+Vector store
+
+ChromaDB
+
+Retrieval
+
+Semantic + keyword hybrid retrieval
+
+LLM provider
+
+Groq
+
+LLM model
+
+openai/gpt-oss-20b
+
+Generation
+
+Grounded, concise, evidence-constrained
+
 Project Structure
-DOCUPILOT/
+
+VERICORE/
 │
 ├── backend/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── chat.py              # Grounded chat & RAG endpoints
-│   │   │   ├── documents.py         # Upload, list, delete, suggestions
-│   │   │   └── health.py            # Diagnostic & health endpoint
+│   │   │   ├── chat.py
+│   │   │   ├── documents.py
+│   │   │   └── health.py
 │   │   │
 │   │   ├── core/
-│   │   │   ├── config.py             # Settings & environment configuration
-│   │   │   └── logging.py            # Structured logging
+│   │   │   ├── config.py
+│   │   │   └── logging.py
 │   │   │
 │   │   ├── models/
-│   │   │   └── schemas.py            # Pydantic request/response models
+│   │   │   └── schemas.py
 │   │   │
 │   │   ├── prompts/
-│   │   │   └── qa_prompt.py          # Grounded QA prompt builder
+│   │   │   └── qa_prompt.py
 │   │   │
 │   │   ├── services/
-│   │   │   ├── chunker.py            # Section-aware chunking
-│   │   │   ├── confidence.py         # Evidence confidence calculator
-│   │   │   ├── document_parser.py    # PDF & TXT extraction
-│   │   │   ├── embeddings.py          # Local MiniLM embeddings
-│   │   │   ├── llm.py                # LLM provider abstraction
-│   │   │   ├── retriever.py          # Hybrid retrieval & reranking
-│   │   │   ├── suggestions.py        # Suggested question generator
-│   │   │   └── vector_store.py       # ChromaDB storage & metadata
+│   │   │   ├── chunker.py
+│   │   │   ├── confidence.py
+│   │   │   ├── document_parser.py
+│   │   │   ├── embeddings.py
+│   │   │   ├── llm.py
+│   │   │   ├── retriever.py
+│   │   │   ├── suggestions.py
+│   │   │   └── vector_store.py
 │   │   │
 │   │   ├── utils/
-│   │   │   ├── hashing.py            # SHA-256 deduplication
-│   │   │   └── text.py               # Text cleaning & keyword utilities
+│   │   │   ├── hashing.py
+│   │   │   └── text.py
 │   │   │
-│   │   └── main.py                   # FastAPI application
+│   │   └── main.py
 │   │
 │   ├── sample_documents/
-│   │   ├── generate_samples.py       # Sample document generator
+│   │   ├── generate_samples.py
 │   │   ├── NovaTech_Benefits_Policy.pdf
 │   │   ├── NovaTech_Employee_Handbook.pdf
 │   │   ├── NovaTech_Leave_Policy.pdf
@@ -349,68 +797,82 @@ DOCUPILOT/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── chat/                 # Chat UI components
-│   │   │   ├── common/               # Shared UI components
-│   │   │   ├── documents/            # Document management
-│   │   │   ├── evidence/             # Evidence Trail components
-│   │   │   └── layout/               # Application layout
-│   │   │
-│   │   ├── hooks/                    # React custom hooks
-│   │   ├── lib/                      # Frontend utilities
-│   │   ├── services/                 # API client
-│   │   ├── types/                    # TypeScript interfaces
-│   │   ├── App.tsx                   # Root application
-│   │   ├── index.css                 # Global styling
+│   │   │   ├── chat/
+│   │   │   ├── common/
+│   │   │   ├── documents/
+│   │   │   ├── evidence/
+│   │   │   └── layout/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   ├── services/
+│   │   ├── types/
+│   │   ├── App.tsx
+│   │   ├── index.css
 │   │   └── main.tsx
-│   │
 │   ├── package.json
 │   ├── tailwind.config.js
 │   ├── tsconfig.json
 │   └── vite.config.ts
 │
 ├── docs/
-│   └── architecture.png              # System architecture diagram
+│   ├── architecture.png
+│   └── screenshots/
+│       ├── home.png
+│       ├── workspace.png
+│       └── evidence-trail.png
 │
 ├── .env.example
 └── README.md
+
 Installation
+
 Prerequisites
+
 Python 3.10+
-Node.js v18+
+
+Node.js 18+
+
 npm
 
 Git
-1. Clone the repository
-git clone https://github.com/YOUR_GITHUB_USERNAME/docupilot.git
-cd DOCUPILOT
 
-Replace YOUR_GITHUB_USERNAME with the actual GitHub repository owner before publishing this README.
+1. Clone
 
-2. Backend Setup
+git clone https://github.com/Lingu17/Vericore---Evidence-First-Document-Intelligence.git
+cd Vericore---Evidence-First-Document-Intelligence
+
+2. Backend
+
 cd backend
 
-# Create virtual environment
+Windows PowerShell
+
 python -m venv .venv
-
-# Windows PowerShell
 .venv\Scripts\Activate.ps1
-
-# Linux / macOS
-# source .venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
 
-# Copy environment configuration
+Linux / macOS
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+Create the environment file:
+
 cp .env.example .env
-3. Frontend Setup
+
+On Windows, copy .env.example to .env manually if cp is unavailable.
+
+3. Frontend
+
 cd ../frontend
 npm install
+
 Environment Variables
 
 Configure backend/.env:
 
-# Groq API Configuration
+# Groq
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=openai/gpt-oss-20b
 USE_MOCK_LLM=false
@@ -420,10 +882,10 @@ MAX_OUTPUT_TOKENS=250
 TEMPERATURE=0
 MAX_HISTORY_MESSAGES=2
 
-# Vector Database
+# Vector database
 CHROMA_PATH=./chroma_db
 
-# Local Embedding Model
+# Local embedding model
 EMBEDDING_MODEL=all-MiniLM-L6-v2
 
 # Retrieval
@@ -437,7 +899,7 @@ HIGH_RELEVANCE_THRESHOLD=0.62
 CHUNK_SIZE=1200
 CHUNK_OVERLAP=150
 
-# Upload Limits
+# Upload
 MAX_FILE_SIZE_MB=10
 
 # Server
@@ -445,68 +907,139 @@ ENV=development
 PORT=8000
 HOST=0.0.0.0
 
-Never commit .env or real API keys to Git.
+Never commit .env or a real API key to Git.
 
-Running Locally
-Terminal 1: Start Backend Server
+Run Locally
+
+Terminal 1 — Backend
+
 cd backend
-
-# Make sure .venv is activated
 uvicorn app.main:app --reload --port 8000
 
 Backend:
 
 http://localhost:8000
 
-API documentation:
+FastAPI docs:
 
 http://localhost:8000/docs
-Terminal 2: Start Frontend Application
+
+Terminal 2 — Frontend
+
 cd frontend
 npm run dev
 
 Frontend:
 
 http://localhost:5173
+
 API Endpoints
-Method	Endpoint	Description
-GET	/health	Application health and system information
-GET	/api/documents	List indexed documents with metadata
-POST	/api/documents/upload	Upload and index PDF/TXT documents
-GET	/api/documents/{document_id}	Fetch metadata for a document
-GET	/api/documents/{document_id}/suggestions	Get suggested questions
-DELETE	/api/documents/{document_id}	Delete document and associated vectors
-DELETE	/api/documents	Clear all indexed documents
-POST	/api/chat	Submit a grounded document question
+
+Method
+
+Endpoint
+
+Description
+
+GET
+
+/health
+
+Application health and system information
+
+GET
+
+/api/documents
+
+List indexed documents
+
+POST
+
+/api/documents/upload
+
+Upload and index PDF/TXT
+
+GET
+
+/api/documents/{document_id}
+
+Fetch document metadata
+
+GET
+
+/api/documents/{document_id}/suggestions
+
+Get suggested questions
+
+DELETE
+
+/api/documents/{document_id}
+
+Delete a document and vectors
+
+DELETE
+
+/api/documents
+
+Clear indexed documents
+
+POST
+
+/api/chat
+
+Submit a grounded document question
+
 Testing
-Run Tests
+
+Run:
+
 python -m pytest backend/tests -v
-Test Suite Summary
+
+Current test result:
+
 18 passed
 
-The final test suite covers:
+The test suite covers:
 
-✓ Health check endpoint
-✓ Document upload
-✓ Duplicate document detection
-✓ Grounded question answering
-✓ Unknown-question anti-hallucination behavior
-✓ Empty question validation
-✓ Chunking metadata preservation
-✓ Section detection
-✓ PDF parsing with page preservation
-✓ TXT parsing
-✓ Empty file rejection
-✓ Unsupported file extension rejection
-✓ Corrupt PDF rejection
-✓ High-confidence retrieval
-✓ Medium-confidence retrieval
-✓ Low-confidence retrieval
-✓ Grounding-aware confidence
-✓ Hybrid retrieval / relevance behavior
-Example Demo Questions
+Health check
 
-The following questions can be used with the sample employee handbook:
+Document upload
+
+Duplicate document detection
+
+Grounded Q&A
+
+Unknown-question handling
+
+Empty question validation
+
+Chunk metadata preservation
+
+Section detection
+
+PDF page preservation
+
+TXT parsing
+
+Empty file rejection
+
+Unsupported extension rejection
+
+Corrupt PDF handling
+
+High-confidence retrieval
+
+Medium-confidence retrieval
+
+Low-confidence retrieval
+
+Grounding-aware confidence
+
+Hybrid retrieval / relevance behavior
+
+Demo Questions
+
+Use the sample employee handbook to demonstrate:
 
 What are the normal working hours?
 
@@ -517,34 +1050,24 @@ When does an employee receive their first performance review?
 How many hours per week must an employee work to be considered full-time?
 
 What should an employee do if they expect to arrive late?
+
 Hallucination Test
 
 Ask:
 
 What is the company's annual performance bonus?
 
-Expected behavior:
+Expected:
 
 Information not available in the uploaded documents.
 
 The system should not invent a bonus amount or generate unsupported information.
 
-AI Tools Used
-
-AI-assisted development tools were used during implementation for:
-
-Exploring implementation approaches for RAG, retrieval, chunking, and grounding.
-Debugging retrieval behavior and edge cases.
-Reviewing code structure and generating test ideas.
-Refining prompts and response behavior.
-Improving documentation and README content.
-
-AI-generated suggestions were reviewed, tested, debugged, and adapted before being included in the final implementation.
-
 Design Decisions
+
 Why Local Embeddings?
 
-all-MiniLM-L6-v2 runs locally and avoids requiring a separate external embedding API.
+all-MiniLM-L6-v2 runs locally and avoids a separate external embedding API.
 
 This keeps the embedding pipeline simple and reduces external API dependency.
 
@@ -554,25 +1077,41 @@ ChromaDB provides lightweight persistent vector storage suitable for a focused R
 
 Why FastAPI?
 
-FastAPI provides a clean API layer with request validation, automatic API documentation, and straightforward integration with the retrieval and LLM services.
+FastAPI provides:
+
+Clear API boundaries
+
+Request validation
+
+Automatic API documentation
+
+Straightforward integration with retrieval and LLM services
 
 Why React + TypeScript?
 
-React provides a flexible interface for document management, chat, evidence inspection, and application state.
+React provides a flexible interface for:
 
-TypeScript improves type safety and maintainability across the frontend.
+Document management
+
+Chat
+
+Evidence inspection
+
+Application state
+
+TypeScript improves type safety and maintainability.
 
 Why Hybrid Retrieval?
 
-Pure semantic similarity can sometimes miss exact policy terminology, dates, numbers, and important keywords.
+Pure semantic similarity can sometimes miss exact policy terminology, dates, numbers, and keywords.
 
-DocuPilot combines semantic similarity with keyword coverage and reranking to improve retrieval quality.
+Vericore combines semantic similarity with keyword coverage and reranking to improve retrieval for both conceptual and precise policy questions.
 
 Why Deterministic Unknown Handling?
 
 A document assistant should not treat every question as answerable.
 
-If sufficient evidence cannot be retrieved, the system returns a deterministic unknown response instead of asking the LLM to infer or invent an answer.
+If sufficient evidence cannot be retrieved, Vericore returns a deterministic unknown response instead of asking the LLM to infer or invent an answer.
 
 Why Backend Source Validation?
 
@@ -580,99 +1119,259 @@ Source attribution should not depend entirely on generated text.
 
 The backend stores document metadata alongside each chunk and resolves returned source identifiers against those stored records before displaying the Evidence Trail.
 
-Limitations
-
-The current implementation is intentionally scoped for the take-home assignment.
-
-Known limitations include:
-
-Scanned/image-only PDFs require OCR support, which is not currently included.
-PDF extraction quality depends on document structure.
-Complex tables may require specialized table extraction.
-The current upload size limit is configured for lightweight document workflows.
-ChromaDB runs locally rather than as a distributed production vector service.
-The application depends on the configured Groq API for LLM generation.
-Authentication and multi-user access control are not implemented.
-The current application is not designed for distributed production deployment.
-Retrieval thresholds may require tuning for different document collections.
-Large-scale document evaluation and retrieval benchmarking are not included.
-Future Improvements
-
-With additional development time, the following improvements could be added:
-
-OCR support for scanned PDFs.
-DOCX, CSV and XLSX ingestion.
-Cross-document comparison mode.
-Improved table-aware retrieval.
-BM25 + vector hybrid retrieval.
-Dedicated cross-encoder reranking.
-Streaming LLM responses.
-Authentication and role-based access control.
-Cloud-based vector storage for larger deployments.
-Automated retrieval evaluation datasets and metrics.
-Document versioning and change tracking.
-Production observability and monitoring.
 Security
 
 The project follows several basic security practices:
 
 API keys are stored in environment variables.
-Real secrets are excluded from Git.
+
 .env files are not committed.
+
+Real secrets are excluded from Git.
+
 Uploaded documents are processed locally for extraction and embeddings.
-Only retrieved evidence is passed to the LLM rather than entire document contents.
+
+Only retrieved evidence is passed to the LLM rather than complete documents.
+
 Backend validation is applied to document and API inputs.
+
 Source metadata is resolved by the backend instead of trusting generated citation text.
+
+Limitations
+
+The current implementation is intentionally scoped for a focused RAG application.
+
+Known limitations:
+
+Scanned/image-only PDFs require OCR support.
+
+PDF extraction quality depends on document structure.
+
+Complex tables may require specialized extraction.
+
+The upload size limit is configured for lightweight workflows.
+
+ChromaDB runs locally rather than as a distributed vector service.
+
+LLM generation depends on the configured Groq API.
+
+Authentication and multi-user access control are not implemented.
+
+The current application is not designed for distributed production deployment.
+
+Retrieval thresholds may require tuning for different document collections.
+
+Large-scale retrieval benchmarking is not included.
+
+Future Improvements
+
+Potential next steps include:
+
+OCR support for scanned PDFs
+
+DOCX, CSV, and XLSX ingestion
+
+Cross-document comparison mode
+
+Improved table-aware retrieval
+
+BM25 + vector hybrid retrieval
+
+Dedicated cross-encoder reranking
+
+Streaming LLM responses
+
+Authentication and role-based access control
+
+Cloud-based vector storage
+
+Automated retrieval evaluation datasets and metrics
+
+Document versioning and change tracking
+
+Production observability and monitoring
+
+AI-Assisted Development
+
+AI-assisted development tools were used during implementation for:
+
+Exploring RAG implementation approaches
+
+Debugging retrieval behavior and edge cases
+
+Reviewing code structure
+
+Generating test ideas
+
+Refining prompts
+
+Improving response behavior
+
+Refining project documentation
+
+AI-generated suggestions were reviewed, tested, debugged, and adapted before being included in the final implementation.
+
 Development Time
 
-The implementation was completed within the assignment's requested time constraint.
+Vericore was developed within the assignment's specified 8-hour development constraint.
 
-## Development Time
+The development window covered:
 
-DocuPilot was developed within the assignment's specified 8-hour time constraint.
+Problem understanding and architecture
 
-| Activity | Time |
-| :--- | ---: |
-| Problem understanding & architecture | Included within the 8-hour development window |
-| Core development & RAG implementation | Included within the 8-hour development window |
-| Retrieval tuning, testing & debugging | Included within the 8-hour development window |
-| UI, documentation & final submission preparation | Included within the 8-hour development window |
-| **Total** | **8 hours** |
+Core frontend and backend implementation
 
-DocuPilot implements the core requirements of the Smart Document Assistant assignment:
+Document ingestion
 
-Requirement	Implementation
-PDF upload	PyMuPDF-based parser
-TXT upload	Native TXT parser
-Text extraction	Document parser
-Chunking	Section / paragraph / sentence-aware chunker
-Embeddings	Local MiniLM embeddings
-Searchable store	Persistent ChromaDB
-Question answering	FastAPI + RAG + Groq
-Grounded answers	Retrieved evidence only
-Source attribution	Backend-verified source IDs
-Unknown questions	Deterministic NOT_FOUND handling
-Creative feature	Evidence Trail + suggestions + confidence
-Multi-document reasoning	Document-scope retrieval
-Architecture	docs/architecture.png
-Testing	18 automated tests
-Documentation	README + setup + design decisions
+RAG pipeline
+
+Retrieval refinement
+
+Hallucination handling
+
+Evidence Trail implementation
+
+Testing and debugging
+
+UI refinement
+
+Documentation
+
+Final verification
+
+Total development window: 8 hours
+
+Assignment Alignment
+
+Requirement
+
+Vericore Implementation
+
+PDF upload
+
+PyMuPDF-based parser
+
+TXT upload
+
+Native TXT parser
+
+Text extraction
+
+Document parser
+
+Chunking
+
+Section / paragraph / sentence-aware chunker
+
+Embeddings
+
+Local MiniLM embeddings
+
+Searchable store
+
+Persistent ChromaDB
+
+Question answering
+
+FastAPI + RAG + Groq
+
+Grounded answers
+
+Retrieved evidence only
+
+Source attribution
+
+Backend-verified source IDs
+
+Unknown questions
+
+Deterministic NOT_FOUND handling
+
+Creative feature
+
+Evidence Trail + suggestions + confidence
+
+Multi-document reasoning
+
+Document-scope retrieval
+
+Conversation memory
+
+Limited contextual follow-up
+
+Architecture
+
+docs/architecture.png
+
+Testing
+
+18 automated tests
+
+Documentation
+
+README + setup + design decisions
+
+Sample Documents
+
+Sample documents are available under:
+
+backend/sample_documents/
+
+Examples:
+
+NovaTech_Benefits_Policy.pdf
+NovaTech_Employee_Handbook.pdf
+NovaTech_Leave_Policy.pdf
+NovaTech_Remote_Work_FAQ.txt
+
 License
 
 MIT License.
 
-Developed as a GenAI take-home project focused on grounded document intelligence, retrieval-augmented generation, source attribution, and hallucination-aware question answering.
+Project Summary
 
+Vericore — Evidence-First Document Intelligence
 
-### Final checks before you commit
+A GenAI document intelligence project focused on:
 
-Only **one placeholder** remains intentionally:
+Retrieval-Augmented Generation
 
-```text
-https://github.com/YOUR_GITHUB_USERNAME/docupilot.git
+Grounded question answering
 
-Replace that with your real repository URL.
+Source attribution
 
-Also keep:
+Evidence inspection
 
-GROQ_API_KEY=your_groq_api_key_here
+Hallucination-aware document search
+
+Practical business document workflows
+
+Built around one principle
+
+Don't just give an answer. Show the evidence behind it.
+
+Final Repository Checklist
+
+Before publishing:
+
+Add docs/screenshots/home.png
+
+Add docs/screenshots/workspace.png
+
+Add docs/screenshots/evidence-trail.png
+
+Confirm docs/architecture.png exists
+
+Confirm .env is ignored
+
+Confirm no real API keys exist in Git history
+
+Run backend tests
+
+Run npm run build
+
+Verify the GitHub repository URL
+
+Verify the demo video link
+
+Verify README images render correctly on GitHub
