@@ -56,19 +56,22 @@ Built for:
 
 ## Landing Page
 
-<img width="1919" height="972" alt="Vericore Landing Page" src="https://github.com/user-attachments/assets/6c806663-14f3-4cd3-ac20-a0e991236dc8" />
+<img width="1913" height="987" alt="image" src="https://github.com/user-attachments/assets/285b4531-e358-42f2-8859-4e0caed5f914" />
+
 
 ---
 
 ## Document Workspace
 
-<img width="1919" height="972" alt="Vericore Document Workspace" src="https://github.com/user-attachments/assets/6c806663-14f3-4cd3-ac20-a0e991236dc8" />
+<img width="1912" height="982" alt="image" src="https://github.com/user-attachments/assets/53a0c52d-386c-4cb7-ac61-09af4ce50477" />
+
 
 ---
 
 ## Evidence Trail
 
-<img width="1919" height="972" alt="Vericore Evidence Trail" src="https://github.com/user-attachments/assets/6c806663-14f3-4cd3-ac20-a0e991236dc8" />
+<img width="1907" height="982" alt="image" src="https://github.com/user-attachments/assets/afae7960-3b36-48d5-b419-23e004785e70" />
+
 
 ---
 
