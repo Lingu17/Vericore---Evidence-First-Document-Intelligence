@@ -61,10 +61,10 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         onDrop={handleDrop}
         onClick={() => !isUploading && fileInputRef.current?.click()}
         className={cn(
-          'relative border-2 border-dashed rounded-xl p-4 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-2 select-none',
+          'relative border-2 border-dashed rounded-xl p-4 transition-all duration-200 text-center cursor-pointer flex flex-col items-center justify-center gap-2 select-none bg-slate-50 hover:-translate-y-0.5',
           isDragging
-            ? 'border-brand-500 bg-brand-50/70 scale-[0.99]'
-            : 'border-slate-200 hover:border-brand-400 bg-slate-50/50 hover:bg-slate-50',
+            ? 'border-brand-500 bg-brand-50 scale-[0.99] shadow-card'
+            : 'border-slate-200 bg-slate-50 hover:border-brand-400 hover:bg-brand-50/50 hover:shadow-glow-blue',
           isUploading && 'opacity-80 cursor-wait pointer-events-none'
         )}
       >
@@ -77,7 +77,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
           disabled={isUploading}
         />
 
-        <div className="w-10 h-10 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 mb-0.5">
+        <div className="w-10 h-10 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-600 mb-0.5 transition-colors">
           <UploadCloud className="w-5 h-5" />
         </div>
 

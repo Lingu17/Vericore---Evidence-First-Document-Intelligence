@@ -27,9 +27,9 @@ export const SuggestedQuestions: React.FC<SuggestedQuestionsProps> = ({
             key={idx}
             onClick={() => onSelect(q)}
             disabled={disabled}
-            className="text-left text-xs bg-white hover:bg-brand-50/80 text-slate-700 hover:text-brand-800 border border-slate-200/90 hover:border-brand-300 px-3 py-1.5 rounded-full shadow-subtle transition-all disabled:opacity-50 disabled:cursor-not-allowed group flex items-center gap-1.5"
+            className="text-left text-xs bg-white hover:bg-brand-50/70 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-brand-300 px-3 py-1.5 rounded-full shadow-subtle hover:shadow-card transition-all duration-200 hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed group flex items-center gap-1.5"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-400 group-hover:scale-125 transition-transform shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-500 group-hover:scale-125 transition-transform shrink-0" />
             <span className="truncate max-w-md">{q}</span>
           </button>
         ))}

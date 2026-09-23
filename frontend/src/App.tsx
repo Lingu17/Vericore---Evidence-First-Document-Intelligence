@@ -12,6 +12,7 @@ import { HealthResponse } from './types';
 export function App() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [isEvidencePanelOpen, setIsEvidencePanelOpen] = useState<boolean>(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   const {
     documents,
@@ -52,12 +53,24 @@ export function App() {
     closeEvidence();
   };
 
+  const handleToggleEvidence = () => {
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches;
+    if (isMobile) {
+      if (selectedEvidence) {
+        openEvidence(selectedEvidence);
+      }
+      return;
+    }
+    setIsEvidencePanelOpen((prev) => !prev);
+  };
+
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#F8FAFC]">
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#F8FAFC] text-slate-900">
       {/* Top Header */}
       <Header
         health={health}
-        onToggleEvidence={() => setIsEvidencePanelOpen((prev) => !prev)}
+        onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+        onToggleEvidence={handleToggleEvidence}
         isEvidenceOpen={isEvidencePanelOpen}
         onClearChat={clearMessages}
         hasMessages={messages.length > 0}
@@ -69,12 +82,17 @@ export function App() {
         <Sidebar
           documents={documents}
           selectedDocId={selectedDocId}
-          onSelectDoc={setSelectedDocId}
+          onSelectDoc={(id) => {
+            setSelectedDocId(id);
+            setIsSidebarOpen(false);
+          }}
           onDeleteDoc={deleteDocument}
           onClearAll={clearAll}
           onUpload={uploadFile}
           isUploading={isUploading}
           uploadProgress={uploadProgress}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
         />
 
         {/* Center Main Workspace */}

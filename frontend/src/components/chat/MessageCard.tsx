@@ -18,10 +18,10 @@ export const MessageCard: React.FC<MessageCardProps> = ({
   if (message.role === 'user') {
     return (
       <div className="flex items-start gap-3 justify-end my-4">
-        <div className="max-w-2xl bg-slate-900 text-white px-4 py-3 rounded-2xl rounded-tr-sm shadow-subtle">
+        <div className="max-w-2xl bg-slate-900 text-white px-4 py-3 rounded-2xl rounded-tr-sm shadow-card">
           <p className="text-sm font-normal leading-relaxed">{message.content}</p>
         </div>
-        <div className="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 shrink-0 mt-0.5">
+        <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0 mt-0.5">
           <User className="w-4 h-4" />
         </div>
       </div>
@@ -37,13 +37,13 @@ export const MessageCard: React.FC<MessageCardProps> = ({
 
   return (
     <div className="flex items-start gap-3.5 my-5">
-      <div className="w-8 h-8 rounded-full bg-brand-600 border border-brand-700 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
+      <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-card">
         <Bot className="w-4.5 h-4.5" />
       </div>
 
       <div className="flex-1 max-w-3xl space-y-4">
         {/* Answer Container Card */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-subtle space-y-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-card space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -80,22 +80,22 @@ export const MessageCard: React.FC<MessageCardProps> = ({
                   <div
                     key={idx}
                     onClick={() => onSelectEvidence(src)}
-                    className="group flex flex-col justify-between p-3 rounded-xl border border-slate-200/80 bg-slate-50/60 hover:bg-brand-50/50 hover:border-brand-300 transition-all cursor-pointer shadow-subtle select-none"
+                    className="group flex flex-col justify-between p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-brand-50/50 hover:border-brand-300 shadow-subtle hover:shadow-card transition-all duration-200 hover:-translate-y-px cursor-pointer select-none"
                   >
                     <div>
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <FileText className="w-3.5 h-3.5 text-brand-600 shrink-0" />
-                          <span className="text-xs font-semibold text-slate-900 truncate" title={src.filename}>
+                          <span className="text-xs font-semibold text-slate-800 truncate" title={src.filename}>
                             {src.filename || 'Untitled'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200/90 text-slate-700">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">
                             Page {src.page ?? '?'}
                           </span>
                           {typeof src.similarity_score === 'number' && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                               {Math.round(src.similarity_score * 100)}%
                             </span>
                           )}
@@ -103,17 +103,17 @@ export const MessageCard: React.FC<MessageCardProps> = ({
                       </div>
 
                       {src.section && (
-                        <p className="text-[11px] font-medium text-slate-600 truncate mb-1">
+                        <p className="text-[11px] font-medium text-slate-500 truncate mb-1">
                           {src.section}
                         </p>
                       )}
 
-                      <p className="text-xs text-slate-600 line-clamp-2 italic leading-snug">
+                      <p className="text-xs text-slate-500 line-clamp-2 italic leading-snug">
                         {src.evidence ? `"${src.evidence}"` : 'Excerpt unavailable'}
                       </p>
                     </div>
 
-                    <div className="mt-2 pt-1.5 border-t border-slate-200/40 flex items-center justify-between text-[11px] text-brand-600 font-medium group-hover:text-brand-700">
+                    <div className="mt-2 pt-1.5 border-t border-slate-200 flex items-center justify-between text-[11px] text-brand-600 font-medium group-hover:text-brand-800">
                       <span>View evidence</span>
                       <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                     </div>

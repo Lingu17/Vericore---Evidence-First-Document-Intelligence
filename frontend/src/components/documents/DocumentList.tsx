@@ -20,8 +20,10 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 }) => {
   if (documents.length === 0) {
     return (
-      <div className="py-6 px-3 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-        <Layers className="w-6 h-6 text-slate-400 mx-auto mb-1.5" />
+      <div className="py-6 px-3 text-center border border-slate-200 rounded-xl bg-white shadow-card">
+        <div className="w-9 h-9 mx-auto mb-2 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center">
+          <Layers className="w-4 h-4 text-slate-400" />
+        </div>
         <p className="text-xs font-semibold text-slate-700">No documents indexed</p>
         <p className="text-[11px] text-slate-500 mt-0.5">
           Upload PDF or TXT files above to begin.
@@ -62,7 +64,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           </span>
           <button
             onClick={() => onSelectDoc(null)}
-            className="text-[11px] font-semibold text-brand-600 hover:underline shrink-0 ml-2"
+            className="text-[11px] font-semibold text-brand-700 hover:text-brand-800 shrink-0 ml-2"
           >
             View all
           </button>

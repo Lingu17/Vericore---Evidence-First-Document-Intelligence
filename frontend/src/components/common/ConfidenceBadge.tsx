@@ -17,19 +17,19 @@ export const ConfidenceBadge: React.FC<ConfidenceBadgeProps> = ({
   const configs = {
     high: {
       label: 'High evidence match',
-      bg: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+      bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       dot: 'bg-emerald-500',
       icon: ShieldCheck,
     },
     medium: {
       label: 'Moderate evidence match',
-      bg: 'bg-amber-50 text-amber-800 border-amber-200',
+      bg: 'bg-amber-50 text-amber-700 border-amber-200',
       dot: 'bg-amber-500',
       icon: ShieldAlert,
     },
     low: {
       label: 'Low / Insufficient evidence',
-      bg: 'bg-slate-100 text-slate-700 border-slate-200',
+      bg: 'bg-slate-100 text-slate-600 border-slate-200',
       dot: 'bg-slate-400',
       icon: ShieldX,
     },

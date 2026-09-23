@@ -43,7 +43,7 @@ export const QueryInput: React.FC<QueryInputProps> = ({
   };
 
   return (
-    <div className="w-full relative bg-white border border-slate-200/90 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100 rounded-2xl shadow-card transition-all">
+    <div className="w-full relative bg-white border border-slate-200 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100 rounded-2xl shadow-card hover:shadow-dropdown transition-all duration-200">
       <form onSubmit={handleSubmit} className="flex items-center px-4 py-2.5">
         <textarea
           ref={textareaRef}
@@ -62,9 +62,9 @@ export const QueryInput: React.FC<QueryInputProps> = ({
             disabled={!query.trim() || isLoading || disabled}
             aria-label="Send question"
             className={cn(
-              'h-8 w-8 rounded-xl flex items-center justify-center transition-all',
+              'h-8 w-8 rounded-xl flex items-center justify-center transition-all duration-200',
               query.trim() && !isLoading && !disabled
-                ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm'
+                ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-card hover:shadow-lift'
                 : 'bg-slate-100 text-slate-400 cursor-not-allowed'
             )}
           >
@@ -73,10 +73,10 @@ export const QueryInput: React.FC<QueryInputProps> = ({
         </div>
       </form>
 
-      <div className="flex items-center justify-between px-4 pb-2 pt-0.5 text-[11px] text-slate-400 border-t border-slate-50">
+      <div className="flex items-center justify-between px-4 pb-2 pt-0.5 text-[11px] text-slate-400 border-t border-slate-100">
         <span className="flex items-center gap-1">
           <CornerDownLeft className="w-3 h-3 opacity-70" />
-          <span>Press <strong>Enter</strong> to ask</span>
+          <span>Press <strong className="text-slate-600">Enter</strong> to ask</span>
         </span>
         <span>Evidence-first verification</span>
       </div>

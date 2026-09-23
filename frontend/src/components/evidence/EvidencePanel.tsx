@@ -17,9 +17,9 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
   if (!isOpen) return null;
 
   return (
-    <aside className="w-88 xl:w-96 border-l border-slate-200/90 bg-white flex flex-col h-full shrink-0 shadow-subtle z-10 transition-all">
+    <aside className="w-88 xl:w-96 border-l border-slate-200 bg-white flex flex-col h-full shrink-0 shadow-card z-10 transition-all">
       {/* Panel Header */}
-      <div className="h-14 px-4 border-b border-slate-200/90 flex items-center justify-between bg-slate-50/50">
+      <div className="h-14 px-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-brand-600" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
@@ -29,7 +29,7 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
 
         <button
           onClick={onClose}
-          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+          className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
           title="Close Evidence Panel"
         >
           <X className="w-4 h-4" />
@@ -40,7 +40,7 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {selectedEvidence ? (
           <div className="space-y-4">
-            <div className="text-xs text-slate-500 leading-relaxed bg-brand-50/60 border border-brand-100 rounded-lg p-3">
+            <div className="text-xs text-slate-500 leading-relaxed bg-brand-50 border border-brand-200 rounded-lg p-3">
               <strong className="text-brand-900">Evidence-First Guarantee:</strong> Every cited fact is extracted directly from the page and section below.
             </div>
 
@@ -54,7 +54,7 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
             <div className="space-y-1">
               <p className="text-xs font-semibold text-slate-700">No source selected</p>
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                Click <strong>[View evidence]</strong> on any answer source card to inspect page-level evidence snippets.
+                Click <strong className="text-slate-700">[View evidence]</strong> on any answer source card to inspect page-level evidence snippets.
               </p>
             </div>
           </div>

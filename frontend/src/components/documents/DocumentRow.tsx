@@ -22,24 +22,24 @@ export const DocumentRow: React.FC<DocumentRowProps> = ({
     <div
       onClick={() => onSelect(document.document_id)}
       className={cn(
-        'group relative flex items-start gap-2.5 p-2.5 rounded-lg border transition-all cursor-pointer select-none',
+        'group relative flex items-start gap-2.5 p-2.5 rounded-lg border transition-all duration-200 cursor-pointer select-none shadow-subtle hover:-translate-y-px',
         isSelected
-          ? 'bg-brand-50/80 border-brand-300 ring-1 ring-brand-400'
-          : 'bg-white border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/70 shadow-subtle'
+          ? 'bg-brand-50/80 border-brand-300 ring-1 ring-brand-200 shadow-card'
+          : 'bg-white border-slate-200 hover:border-brand-300 hover:bg-brand-50/40 hover:shadow-card'
       )}
     >
       {/* File type badge icon */}
       <div
         className={cn(
           'p-1.5 rounded-md shrink-0 flex items-center justify-center',
-          isPdf ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-sky-50 text-sky-600 border border-sky-100'
+          isPdf ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-sky-50 text-sky-600 border border-sky-200'
         )}
       >
         <FileText className="w-4 h-4" />
       </div>
 
       <div className="flex-1 min-w-0 pr-6">
-        <p className="text-xs font-semibold text-slate-900 truncate leading-tight" title={document.filename}>
+        <p className="text-xs font-semibold text-slate-800 truncate leading-tight" title={document.filename}>
           {document.filename}
         </p>
         <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500">

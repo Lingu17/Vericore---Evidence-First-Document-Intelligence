@@ -28,12 +28,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto space-y-6 select-none">
-        <div className="w-14 h-14 rounded-2xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-600 shadow-subtle">
+      <div className="relative flex-1 flex flex-col items-center justify-center px-6 py-8 text-center max-w-2xl mx-auto space-y-6 select-none overflow-y-auto">
+        {/* Subtle ambient radial glow behind empty state */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_35%,rgba(37,99,235,0.05),transparent_70%)]" />
+
+        <div className="relative w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-brand-600 shadow-[0_8px_24px_rgba(15,23,42,0.08)] hover:shadow-lift transition-shadow duration-200">
           <Bot className="w-7 h-7" />
         </div>
 
-        <div className="space-y-2">
+        <div className="relative space-y-2">
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">
             {hasDocuments
               ? 'Ask your documents. Verify every answer.'
@@ -41,31 +44,43 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
             {hasDocuments
-              ? 'DocuPilot retrieves verified evidence passages from your uploaded business documents and returns concise, hallucination-free answers.'
-              : 'Upload your company policies, employee handbooks, or business SOPs in the sidebar to begin asking questions.'}
+              ? 'Vericore retrieves verified evidence passages from your uploaded business documents and returns concise answers grounded in that evidence.'
+              : 'Upload documents to start building your knowledge workspace.'}
           </p>
+          {!hasDocuments && (
+            <p className="text-[12px] sm:text-[13px] text-slate-500 leading-relaxed">
+              Add policies, handbooks, SOPs, reports, or other business documents to start
+              asking questions.
+            </p>
+          )}
         </div>
 
         {/* Value pillars */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full text-left">
-          <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-subtle">
-            <ShieldCheck className="w-4 h-4 text-brand-600 mb-1.5" />
-            <h4 className="text-xs font-bold text-slate-800">Zero Hallucination</h4>
+        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 w-full text-left">
+          <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift hover:border-brand-300">
+            <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center mb-2">
+              <ShieldCheck className="w-4 h-4 text-brand-600" />
+            </div>
+            <h4 className="text-xs font-bold text-slate-800">Evidence-Grounded</h4>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Strict deterministic thresholding and evidence grounding.
+              Responses are built from retrieved, verifiable document context.
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-subtle">
-            <FileCheck className="w-4 h-4 text-brand-600 mb-1.5" />
+          <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift hover:border-brand-300">
+            <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center mb-2">
+              <FileCheck className="w-4 h-4 text-brand-600" />
+            </div>
             <h4 className="text-xs font-bold text-slate-800">Page-Level Audit</h4>
             <p className="text-[11px] text-slate-500 mt-0.5">
               Exact source document, section, and page attribution.
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-subtle">
-            <HelpCircle className="w-4 h-4 text-brand-600 mb-1.5" />
+          <div className="p-3.5 rounded-xl border border-slate-200 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift hover:border-brand-300">
+            <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center mb-2">
+              <HelpCircle className="w-4 h-4 text-brand-600" />
+            </div>
             <h4 className="text-xs font-bold text-slate-800">Clear Unknowns</h4>
             <p className="text-[11px] text-slate-500 mt-0.5">
               Distinct 'Information Not Found' when evidence is absent.
@@ -75,7 +90,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
         {/* Demo starter prompts if documents exist */}
         {hasDocuments && (
-          <div className="w-full pt-2">
+          <div className="relative w-full pt-2">
             <p className="text-xs font-semibold text-slate-500 flex items-center justify-center gap-1 mb-2.5">
               <Sparkles className="w-3.5 h-3.5 text-brand-600" />
               <span>Try asking these sample questions:</span>
@@ -91,15 +106,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 <button
                   key={idx}
                   onClick={() => onAskQuestion(sampleQ)}
-                  className="text-left text-xs bg-white hover:bg-slate-50 border border-slate-200 hover:border-brand-300 text-slate-700 hover:text-brand-800 px-3.5 py-2 rounded-xl shadow-subtle transition-all flex items-center justify-between group"
+                  className="text-left text-xs bg-white hover:bg-brand-50/60 hover:border-brand-300 border border-slate-200 text-slate-700 hover:text-slate-900 px-3.5 py-2 rounded-xl shadow-subtle hover:shadow-card transition-all duration-200 hover:-translate-y-px flex items-center justify-between group"
                 >
                   <span className="font-medium">{sampleQ}</span>
                   {idx === 4 ? (
-                    <span className="text-[10px] bg-amber-50 text-amber-700 font-bold px-1.5 py-0.5 rounded border border-amber-200">
+                    <span className="text-[10px] bg-amber-50 text-amber-800 font-bold px-1.5 py-0.5 rounded border border-amber-200">
                       Tests NOT_FOUND
                     </span>
                   ) : (
-                    <span className="text-[10px] text-brand-600 font-semibold group-hover:underline">
+                    <span className="text-[10px] text-brand-600 font-semibold group-hover:text-brand-800">
                       Ask →
                     </span>
                   )}
@@ -126,10 +141,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       {/* Querying stage progress indicator */}
       {isQuerying && (
         <div className="flex items-start gap-3.5 my-4">
-          <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-white shrink-0 mt-0.5">
+          <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-card">
             <Bot className="w-4.5 h-4.5" />
           </div>
-          <div className="bg-white border border-slate-200/90 rounded-2xl px-5 py-4 shadow-subtle flex items-center gap-3">
+          <div className="bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-card flex items-center gap-3">
             <Loader2 className="w-4 h-4 text-brand-600 animate-spin" />
             <div className="space-y-0.5">
               <p className="text-xs font-semibold text-slate-800">

@@ -1,22 +1,29 @@
 # DocuPilot
 
-> **"Ask your documents. Verify every answer."**  
-> *Evidence-First Document Intelligence for Enterprise Teams.*
+> **"Ask your documents. Verify every answer."**
+
+> *Evidence-First Document Intelligence for Business Teams.*
 
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg?style=flat-square)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/Frontend-React_18_%2B_Vite-61DAFB.svg?style=flat-square)](https://react.dev/)
 [![ChromaDB](https://img.shields.io/badge/Vector_DB-ChromaDB_Local-FF6F00.svg?style=flat-square)](https://www.trychroma.com/)
-[![Sentence-Transformers](https://img.shields.io/badge/Embeddings-MiniLM--L6--v2_(Local_%E2%82%B90)-blue.svg?style=flat-square)](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
+[![Sentence-Transformers](https://img.shields.io/badge/Embeddings-MiniLM--L6--v2_Local-blue.svg?style=flat-square)](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
 [![Groq](https://img.shields.io/badge/LLM-Groq_API-F55036.svg?style=flat-square)](https://groq.com/)
-[![Tests](https://img.shields.io/badge/Tests-15_Passed-16A34A.svg?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-18_Passed-16A34A.svg?style=flat-square)]()
 
 ---
 
 ## Overview
 
-**DocuPilot** is an enterprise-grade, evidence-first document intelligence workspace. Rather than functioning as an unconstrained chat wrapper, DocuPilot is purpose-built to answer business questions strictly from verified document context. Every answer is coupled with a transparent, clickable **Evidence Trail** showing the exact source file, 1-indexed page number, section title, and verbatim text passage.
+**DocuPilot** is an evidence-first document intelligence workspace designed for business documents and knowledge workflows.
 
-When supporting information does not exist in the uploaded documents, DocuPilot deterministically responds with a distinct **"Information Not Found"** notification—never confabulating or hallucinating facts.
+Rather than functioning as an unconstrained chat wrapper, DocuPilot answers questions using retrieved and verified document context. Every grounded answer is coupled with a transparent, clickable **Evidence Trail** showing the source file, page number, section title, and stored evidence passage used for the answer.
+
+When supporting information does not exist in the uploaded documents, DocuPilot deterministically responds with:
+
+> **"Information not available in the uploaded documents."**
+
+This prevents the system from confidently inventing unsupported information.
 
 ![DocuPilot Architecture](docs/architecture.png)
 
@@ -24,221 +31,371 @@ When supporting information does not exist in the uploaded documents, DocuPilot 
 
 ## Problem
 
-Enterprise knowledge workers lose countless hours searching through lengthy PDF policies, employee handbooks, SOPs, and legal agreements. Traditional AI document chatbots suffer from critical enterprise flaws:
-1. **Hallucinations & Confabulation:** Generic LLMs extrapolate or invent plausible-sounding details when answers are missing.
-2. **Untraceable Answers:** Answers lack granular citations, forcing staff to manually cross-reference entire multi-page documents.
-3. **Runaway Cloud Costs:** Uploading full documents to paid embedding and LLM APIs incurs high per-token and recurring vector database costs.
-4. **Cluttered Toy Interfaces:** Many RAG tools look like prototype ChatGPT clones rather than high-density B2B productivity software.
+Business users often spend significant time searching through lengthy documents such as PDF policies, employee handbooks, SOPs, benefits documents, and internal agreements.
+
+Traditional AI document assistants can introduce several problems:
+
+1. **Hallucinations & Confabulation:** LLMs may generate plausible-sounding information when the required information is missing.
+
+2. **Untraceable Answers:** Answers may not clearly identify the document, page, section, or evidence used to generate them.
+
+3. **Unnecessary Cloud Costs:** Sending complete documents or large contexts to external embedding and LLM APIs can increase token consumption and API usage.
+
+4. **Limited Evidence Inspection:** Simple document chat interfaces may provide answers without giving users a convenient way to inspect the supporting evidence.
 
 ---
 
 ## Solution
 
 DocuPilot provides an **Evidence-First RAG Architecture**:
-- **100% Local Embeddings (`all-MiniLM-L6-v2`) & ChromaDB:** Vector embeddings and indexing run on-premise at **₹0 cost**.
-- **Deterministic Relevance Gating:** Low-relevance questions are rejected before reaching the LLM, eliminating hallucinations and conserving Groq API tokens.
-- **Tamper-Proof Attribution:** The LLM receives and returns `[SOURCE_ID=...]` tokens. The backend resolves these tokens to verified, immutable chunk metadata so page numbers and citations can never be fabricated.
-- **B2B SaaS Workspace:** A desktop-first 3-column layout (Document Manager, Grounded Chat Timeline, and Inspectable Evidence Drawer).
+
+- **Local Embeddings (`all-MiniLM-L6-v2`) & ChromaDB:** Embeddings and vector storage run locally, avoiding external embedding API costs.
+
+- **Hybrid Retrieval & Relevance Gating:** Semantic similarity is combined with keyword coverage to improve retrieval. Queries with insufficient evidence are rejected before unnecessary LLM generation.
+
+- **Verified Attribution:** The LLM receives and returns internal `[SOURCE_ID=...]` identifiers. The backend resolves these identifiers against stored document metadata before displaying evidence.
+
+- **Grounded Generation:** Only selected document evidence is provided to the LLM instead of sending complete uploaded documents.
+
+- **B2B Workspace:** A desktop-first 3-column layout containing Document Manager, Grounded Chat Timeline, and an inspectable Evidence Drawer.
 
 ---
 
 ## Key Features
 
-- **Document Ingestion (PDF & TXT):** Page-by-page text extraction with layout and heading detection via PyMuPDF (`fitz`).
-- **SHA-256 Deduplication:** Duplicate document uploads are detected instantly by content hash, preventing redundant embedding compute.
-- **Intelligent Page-Aware Chunking:** Text is split along natural paragraph and section boundaries while preserving `document_id`, `filename`, `page`, `section`, and `chunk_id`.
-- **Zero-Cost Local Embeddings:** Fast local embeddings via `sentence-transformers/all-MiniLM-L6-v2` (384-dimensional vector space).
-- **Persistent ChromaDB Vector Store:** Persistent vector storage with cosine similarity metrics and instant document-level purge.
-- **Adaptive Context Sizing:** Dynamically selects 1–3 chunks based on semantic retrieval relevance.
-- **Answer Caching:** In-memory hash cache eliminates duplicate LLM calls for repeated identical questions.
-- **Evidence Confidence Badging:** Deterministic categorization (**High**, **Medium**, **Low**) based on semantic distance—never fake probability percentages.
-- **Smart Suggested Questions:** Extracts high-signal business questions from document section headers on ingestion with zero LLM overhead.
-- **Evidence Trail Side Drawer:** Click any source badge to inspect the verbatim snippet, page number, and section in a dedicated audit panel.
-- **Information Not Found Cards:** Clear, non-error visual states for unsupported queries with suggested alternatives.
-- **Multi-Document Reasoning:** Seamlessly synthesizes evidence across multiple uploaded business policies in a single query.
+- **Document Ingestion (PDF & TXT):** Page-by-page PDF extraction using PyMuPDF with text normalization and heading detection.
+
+- **SHA-256 Deduplication:** Duplicate document uploads are detected using content hashing, preventing unnecessary re-processing and embedding.
+
+- **Intelligent Page-Aware Chunking:** Text is split along paragraph, sentence, and section boundaries while preserving `document_id`, `filename`, `page`, `section`, and `chunk_id`.
+
+- **Local Embeddings:** Fast local embeddings using `sentence-transformers/all-MiniLM-L6-v2` with a 384-dimensional vector representation.
+
+- **Persistent ChromaDB Vector Store:** Persistent local vector storage with similarity search and document-level deletion.
+
+- **Hybrid Retrieval:** Combines semantic similarity with keyword coverage and reranking to improve retrieval for both natural-language queries and precise policy terms.
+
+- **Adaptive Context Sizing:** Dynamically selects a small number of relevant chunks based on retrieval relevance.
+
+- **Answer Caching:** In-memory hashing avoids repeated LLM calls for identical questions with the same document scope and evidence.
+
+- **Evidence Confidence Badging:** Deterministic High / Medium / Low evidence confidence based on retrieval and grounding signals rather than fabricated probability percentages.
+
+- **Smart Suggested Questions:** Generates useful document questions from section headings and document structure without requiring LLM calls during ingestion.
+
+- **Evidence Trail Side Drawer:** Click any source badge to inspect the source filename, page, section, match information, exact stored excerpt, and chunk identifier.
+
+- **Information Not Found Cards:** Clear visual states for unsupported questions instead of fabricated answers.
+
+- **Multi-Document Reasoning:** Retrieves and synthesizes evidence across multiple uploaded documents when relevant.
+
+- **Lightweight Conversation Memory:** Supports contextual follow-up questions while limiting the amount of previous conversation passed to the LLM.
 
 ---
 
 ## Architecture
 
-```
-User Query
-    │
-    ▼
-[Deterministic Query Normalization] (Lowercase, strip punctuation)
-    │
-    ▼
-[SentenceTransformer: all-MiniLM-L6-v2] ──► Local Query Embedding (₹0 Cost)
-    │
-    ▼
-[ChromaDB Local Vector DB] ──► Top-5 Vector Cosine Search (with Doc Scope Filter)
-    │
-    ▼
-[Deduplication & Overlap Filter] ──► Drops near-duplicate chunks (>75% overlap)
-    │
-    ▼
-[Relevance Gate (Threshold = 0.48)]
-    ├── Similarity < 0.48 ──► Deterministic NOT_FOUND (0 Groq calls, 0 tokens)
-    └── Similarity ≥ 0.48 ──► Adaptive Evidence Selection:
-                                 ├── Score ≥ 0.62 ──► 1 Chunk (Ultra-compact)
-                                 ├── Score ≥ 0.54 ──► 2 Chunks
-                                 └── Score ≥ 0.48 ──► Max 3 Chunks
-                                       │
-                                       ▼
-                     [Answer Cache Check] (hash(q + scope + source_ids))
-                     ├── Cache HIT  ──► Return cached result (0 tokens)
-                     └── Cache MISS ──► Grounded Prompt Construction
-                                           │
-                                           ▼
-                     [LLMProvider: Groq (Llama 3.3 / GPT-OSS)]
-                     (temp=0, max_tokens=250, direct JSON schema)
-                                           │
-                                           ▼
-                     [Token Usage Logger (prompt / completion / total)]
-                                           │
-                                           ▼
-                     [Local Source ID Validator & Citation Resolver]
-                                           │
-                                           ▼
-                     [Verified Grounded Answer + Evidence Trail]
-```
+```text
+User
+ │
+ ▼
+React + TypeScript UI
+ │
+ ▼
+FastAPI Backend
+ │
+ ├──────────────────────────────────────┐
+ │                                      │
+ ▼                                      ▼
+Document Processing                Query Processing
+ │                                      │
+ ├── PDF → PyMuPDF                      ├── Normalize Query
+ └── TXT → Text Parser                  │
+                                        ▼
+                                MiniLM Query Embedding
+ │                                      │
+ ▼                                      ▼
+Section-Aware Chunking            ChromaDB Search
+ │                                      │
+ ▼                                      ▼
+MiniLM Document Embeddings         Candidate Pool
+ │                                      │
+ └───────────────► ChromaDB ◄───────────┘
+                         │
+                         ▼
+                Hybrid Re-ranking
+                 │              │
+                 │              ├── Keyword Coverage
+                 │              │
+                 └── Semantic Similarity
+                         │
+                         ▼
+                Relevance / Grounding Gate
+                         │
+              ┌──────────┴──────────┐
+              │                     │
+              ▼                     ▼
+     Insufficient Evidence    Sufficient Evidence
+              │                     │
+              ▼                     ▼
+     Deterministic           Evidence Selection
+       NOT_FOUND                    │
+                                    ▼
+                              Answer Cache
+                                    │
+                          ┌─────────┴─────────┐
+                          │                   │
+                       Cache HIT          Cache MISS
+                          │                   │
+                          │                   ▼
+                          │            Grounded Prompt
+                          │                   │
+                          │                   ▼
+                          │            Groq GPT-OSS 20B
+                          │                   │
+                          │                   ▼
+                          │          Source ID Validation
+                          │                   │
+                          └─────────┬─────────┘
+                                    ▼
+                         Verified Answer + Evidence
+                                    │
+                                    ▼
+                            React Evidence Trail
+Retrieval Pipeline
 
----
+DocuPilot follows this retrieval flow:
 
-## Token Optimization
+User Question
+      │
+      ▼
+Query Normalization
+      │
+      ▼
+Local Query Embedding
+      │
+      ▼
+ChromaDB Semantic Search
+      │
+      ▼
+Candidate Pool
+      │
+      ▼
+Hybrid Re-ranking
+      │
+      ├── Semantic Similarity
+      │
+      └── Keyword Coverage
+      │
+      ▼
+Evidence / Relevance Gate
+      │
+      ├── Insufficient Evidence
+      │        │
+      │        ▼
+      │   Deterministic NOT_FOUND
+      │
+      └── Sufficient Evidence
+               │
+               ▼
+        Adaptive Evidence Selection
+               │
+               ▼
+          Answer Cache
+               │
+               ▼
+        Grounded Prompt
+               │
+               ▼
+          Groq GPT-OSS 20B
+               │
+               ▼
+      Backend Source Validation
+               │
+               ▼
+      Answer + Evidence Trail
 
-DocuPilot is engineered for **Maximum Quality with Minimum LLM Tokens**:
+Hallucination Prevention
 
-1. **Local Embeddings (₹0 Cost):** Uses `all-MiniLM-L6-v2` locally on CPU/GPU. Zero tokens sent to external embedding APIs.
-2. **Retrieval Before Generation:** Only 1–3 top-scoring, deduplicated chunks are ever sent to Groq. Entire documents or raw PDF bodies are **NEVER** sent to the LLM.
-3. **Strict Similarity Gating:** Queries with similarity below `0.48` are rejected before reaching Groq, guaranteeing 0 tokens wasted on out-of-scope questions.
-4. **Adaptive Evidence Selection:** Very high relevance (`≥ 0.62`) sends **1 chunk**, strong relevance (`≥ 0.54`) sends **2 chunks**, and moderate relevance sends at most **3 chunks**.
-5. **Duplicate Evidence Removal:** Near-duplicate chunks with `> 75%` text overlap are filtered out before context assembly.
-6. **Trimmed Context Payloads:** Only `SOURCE_ID`, `filename`, `page`, `section`, and the extracted passage are passed—internal DB metadata, timestamps, and hashes are omitted.
-7. **Minimal System Prompt:** Short, instruction-dense prompt (~45 words) enforcing factual grounding and valid JSON.
-8. **Minimal User Prompt:** Clean `QUESTION:` and `EVIDENCE:` blocks without redundant instruction preamble.
-9. **Pruned Conversation History:** Standalone questions pass **0 previous turns**; follow-up questions retain only the last 1–2 turns (`MAX_HISTORY_MESSAGES = 2`).
-10. **Short Structured Output:** Generation is capped at `MAX_OUTPUT_TOKENS = 250` with `TEMPERATURE = 0`. No verbose reasoning, chain-of-thought, or fluff.
-11. **Backend Confidence Calculation:** Evidence Confidence (**High / Medium / Low**) is computed purely via mathematical distance in Python—never prompting the LLM for self-rated confidence.
-12. **Zero-Token Suggested Questions:** Derived deterministically from section headings and regex patterns during document parsing—no LLM calls on ingestion.
-13. **SHA-256 Ingestion Caching:** Duplicate document uploads are identified via file hash and skipped immediately without re-embedding.
-14. **Identical Query Caching:** In-memory answer caching keyed by `hash(normalized_query + scope + source_ids)` returns instant responses for repeated identical questions with 0 Groq calls.
+Hallucination prevention is handled through multiple layers.
 
----
+1. Retrieval Before Generation
 
-## Technology Stack
+The LLM does not receive complete uploaded documents.
 
-### Backend
-- **Language:** Python 3.10+ / Python 3.14
-- **Framework:** FastAPI, Uvicorn, Pydantic v2, Pydantic-Settings
-- **Document Processing:** PyMuPDF (`pymupdf`) for PDF, native decoders for TXT
-- **Embeddings:** `sentence-transformers` (`all-MiniLM-L6-v2`)
-- **Vector Database:** `chromadb` (Persistent on-disk)
-- **LLM Provider:** `groq` (Llama-3.3 / GPT-OSS) with abstract provider architecture
-- **Testing:** `pytest`, `httpx`
+Only selected retrieved evidence chunks are passed to the generation step.
 
-### Frontend
-- **Framework:** React 18 with TypeScript
-- **Build Tool:** Vite
-- **Styling:** Tailwind CSS (Custom enterprise color tokens & keyframe animations)
-- **Icons:** Lucide React
+2. Hybrid Retrieval
 
----
+Retrieval combines:
 
-## Project Structure
+Semantic similarity
+Keyword coverage
+Candidate reranking
 
-```
+This improves retrieval for questions containing important policy terms, dates, numbers, and specific terminology.
+
+3. Relevance / Grounding Gate
+
+If retrieved evidence is not sufficiently relevant, the system returns the deterministic unknown response instead of asking the LLM to guess.
+
+4. Grounded Prompting
+
+The LLM is instructed to answer using only the supplied evidence.
+
+5. Source Validation
+
+Each retrieved chunk contains an internal source identifier.
+
+The LLM returns source identifiers, and the backend resolves those identifiers against stored document metadata.
+
+This prevents generated responses from independently fabricating:
+
+Page numbers
+File names
+Section names
+Evidence references
+6. Concise Structured Answers
+
+Answers are intentionally short and direct to reduce unnecessary generation and keep the response focused on the retrieved evidence.
+
+Token Optimization
+
+DocuPilot is designed to minimize unnecessary LLM usage.
+
+Local Embeddings: Uses all-MiniLM-L6-v2 locally, avoiding external embedding API calls.
+Retrieval Before Generation: Only a small number of top-scoring, deduplicated chunks are sent to Groq. Complete documents are never sent to the LLM.
+Relevance Gating: Questions with insufficient evidence are rejected before unnecessary LLM generation.
+Adaptive Evidence Selection: Highly relevant questions can use fewer evidence chunks, while moderately relevant questions can use additional supporting chunks.
+Duplicate Evidence Removal: Near-duplicate chunks are filtered before context assembly.
+Trimmed Context Payloads: Only required source metadata and extracted evidence are passed to the LLM.
+Minimal System Prompt: A short instruction-focused prompt enforces factual grounding and structured output.
+Minimal User Prompt: Clean QUESTION: and EVIDENCE: blocks reduce redundant prompt text.
+Pruned Conversation History: Standalone questions do not require previous turns. Follow-up questions retain only the most recent conversation context.
+Short Structured Output: Generation is capped at MAX_OUTPUT_TOKENS = 250 with TEMPERATURE = 0.
+Backend Confidence Calculation: Evidence confidence is calculated in Python from retrieval signals rather than asking the LLM to self-rate confidence.
+Zero-Token Suggested Questions: Suggested questions are generated deterministically from document structure without LLM calls.
+SHA-256 Ingestion Deduplication: Duplicate uploads are detected using file hashes before unnecessary re-embedding.
+Identical Query Caching: Repeated identical questions can return cached results without another LLM generation request.
+Technology Stack
+Backend
+Language: Python 3.10+
+Framework: FastAPI, Uvicorn
+Validation: Pydantic v2, Pydantic Settings
+Document Processing: PyMuPDF (pymupdf) for PDF, native text decoding for TXT
+Embeddings: sentence-transformers
+Embedding Model: all-MiniLM-L6-v2
+Vector Database: ChromaDB persistent local storage
+LLM Provider: Groq API
+LLM Model: openai/gpt-oss-20b
+Testing: Pytest, HTTPX
+Frontend
+Framework: React 18 with TypeScript
+Build Tool: Vite
+Styling: Tailwind CSS
+Icons: Lucide React
+Project Structure
 DOCUPILOT/
+│
 ├── backend/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── chat.py             # Grounded chat & RAG endpoints
-│   │   │   ├── documents.py        # Upload, list, delete, suggestions
-│   │   │   └── health.py           # Diagnostic & system health endpoint
+│   │   │   ├── chat.py              # Grounded chat & RAG endpoints
+│   │   │   ├── documents.py         # Upload, list, delete, suggestions
+│   │   │   └── health.py            # Diagnostic & health endpoint
+│   │   │
 │   │   ├── core/
-│   │   │   ├── config.py           # Pydantic Settings & environment config
-│   │   │   └── logging.py          # Structured logger
+│   │   │   ├── config.py             # Settings & environment configuration
+│   │   │   └── logging.py            # Structured logging
+│   │   │
 │   │   ├── models/
-│   │   │   └── schemas.py          # Pydantic request & response models
+│   │   │   └── schemas.py            # Pydantic request/response models
+│   │   │
 │   │   ├── prompts/
-│   │   │   └── qa_prompt.py        # Strict grounded QA prompt & builder
+│   │   │   └── qa_prompt.py          # Grounded QA prompt builder
+│   │   │
 │   │   ├── services/
-│   │   │   ├── chunker.py          # Section-aware semantic chunker
-│   │   │   ├── confidence.py       # Evidence confidence calculator
-│   │   │   ├── document_parser.py  # PyMuPDF & TXT extraction
-│   │   │   ├── embeddings.py       # Local MiniLM SentenceTransformer singleton
-│   │   │   ├── llm.py              # LLMProvider interface & GroqProvider
-│   │   │   ├── retriever.py        # Vector search & similarity thresholding
-│   │   │   ├── suggestions.py      # Zero-token suggested questions generator
-│   │   │   └── vector_store.py     # Persistent ChromaDB client & metadata registry
+│   │   │   ├── chunker.py            # Section-aware chunking
+│   │   │   ├── confidence.py         # Evidence confidence calculator
+│   │   │   ├── document_parser.py    # PDF & TXT extraction
+│   │   │   ├── embeddings.py          # Local MiniLM embeddings
+│   │   │   ├── llm.py                # LLM provider abstraction
+│   │   │   ├── retriever.py          # Hybrid retrieval & reranking
+│   │   │   ├── suggestions.py        # Suggested question generator
+│   │   │   └── vector_store.py       # ChromaDB storage & metadata
+│   │   │
 │   │   ├── utils/
-│   │   │   ├── hashing.py          # SHA-256 deduplication
-│   │   │   └── text.py             # Unicode cleaner & heading detector
-│   │   └── main.py                 # FastAPI application & lifespan
-│   ├── sample_documents/           # Realistic fictional NovaTech test documents
-│   │   ├── generate_samples.py     # PDF & TXT generator script
+│   │   │   ├── hashing.py            # SHA-256 deduplication
+│   │   │   └── text.py               # Text cleaning & keyword utilities
+│   │   │
+│   │   └── main.py                   # FastAPI application
+│   │
+│   ├── sample_documents/
+│   │   ├── generate_samples.py       # Sample document generator
 │   │   ├── NovaTech_Benefits_Policy.pdf
 │   │   ├── NovaTech_Employee_Handbook.pdf
 │   │   ├── NovaTech_Leave_Policy.pdf
 │   │   └── NovaTech_Remote_Work_FAQ.txt
-│   ├── tests/                      # Pytest test suite (15 unit & integration tests)
+│   │
+│   ├── tests/
 │   │   ├── test_api.py
 │   │   ├── test_chunker.py
 │   │   ├── test_parser.py
 │   │   └── test_retriever_confidence.py
-│   ├── requirements.txt            # Minimal Python dependencies
-│   └── .env.example                # Backend environment template
+│   │
+│   ├── requirements.txt
+│   └── .env.example
+│
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── chat/               # ChatArea, MessageCard, QueryInput, UnknownQuestionCard
-│   │   │   ├── common/             # Badge, Button, ConfidenceBadge, Skeleton, Toast
-│   │   │   ├── documents/          # DocumentList, DocumentRow, DocumentUpload
-│   │   │   ├── evidence/           # EvidenceCard, EvidenceDrawer, EvidencePanel
-│   │   │   └── layout/             # Header, Sidebar, MainWorkspace
-│   │   ├── hooks/                  # useChat, useDocuments custom hooks
-│   │   ├── lib/                    # utils & className merger
-│   │   ├── services/               # api.ts fetch client
-│   │   ├── types/                  # TypeScript domain interfaces
-│   │   ├── App.tsx                 # Root application component
-│   │   ├── index.css               # Tailwind design tokens & typography
+│   │   │   ├── chat/                 # Chat UI components
+│   │   │   ├── common/               # Shared UI components
+│   │   │   ├── documents/            # Document management
+│   │   │   ├── evidence/             # Evidence Trail components
+│   │   │   └── layout/               # Application layout
+│   │   │
+│   │   ├── hooks/                    # React custom hooks
+│   │   ├── lib/                      # Frontend utilities
+│   │   ├── services/                 # API client
+│   │   ├── types/                    # TypeScript interfaces
+│   │   ├── App.tsx                   # Root application
+│   │   ├── index.css                 # Global styling
 │   │   └── main.tsx
+│   │
 │   ├── package.json
 │   ├── tailwind.config.js
 │   ├── tsconfig.json
 │   └── vite.config.ts
+│
 ├── docs/
-│   └── architecture.png            # High-resolution system architecture diagram
-├── .env.example                    # Root environment template
+│   └── architecture.png              # System architecture diagram
+│
+├── .env.example
 └── README.md
-```
+Installation
+Prerequisites
+Python 3.10+
+Node.js v18+
+npm
 
----
-
-## Installation
-
-### Prerequisites
-- Python 3.10+ (tested through Python 3.14)
-- Node.js v18+ & npm
-- Git
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/yourusername/docupilot.git
+Git
+1. Clone the repository
+git clone https://github.com/YOUR_GITHUB_USERNAME/docupilot.git
 cd DOCUPILOT
-```
 
-### 2. Backend Setup
-```bash
+Replace YOUR_GITHUB_USERNAME with the actual GitHub repository owner before publishing this README.
+
+2. Backend Setup
 cd backend
 
 # Create virtual environment
 python -m venv .venv
 
-# Activate virtual environment
-# Windows (PowerShell):
+# Windows PowerShell
 .venv\Scripts\Activate.ps1
-# Linux / macOS:
+
+# Linux / macOS
 # source .venv/bin/activate
 
 # Install dependencies
@@ -246,45 +403,37 @@ pip install -r requirements.txt
 
 # Copy environment configuration
 cp .env.example .env
-```
-
-### 3. Frontend Setup
-```bash
+3. Frontend Setup
 cd ../frontend
 npm install
-```
+Environment Variables
 
----
+Configure backend/.env:
 
-## Environment Variables
-
-Configure `backend/.env`:
-
-```env
 # Groq API Configuration
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=openai/gpt-oss-20b
 USE_MOCK_LLM=false
 
-# Token-Saving Limits & Generation
+# Generation
 MAX_OUTPUT_TOKENS=250
 TEMPERATURE=0
 MAX_HISTORY_MESSAGES=2
 
-# Vector Database (Local ChromaDB)
+# Vector Database
 CHROMA_PATH=./chroma_db
 
-# Local Embedding Model (Runs 100% locally at ₹0 cost)
+# Local Embedding Model
 EMBEDDING_MODEL=all-MiniLM-L6-v2
 
-# Adaptive Retrieval & Relevance Gating
+# Retrieval
 TOP_K=5
 FINAL_CONTEXT_CHUNKS=3
 SIMILARITY_THRESHOLD=0.48
 STRONG_RELEVANCE_THRESHOLD=0.54
 HIGH_RELEVANCE_THRESHOLD=0.62
 
-# Ingestion & Chunking (Character-based)
+# Chunking
 CHUNK_SIZE=1200
 CHUNK_OVERLAP=150
 
@@ -295,74 +444,235 @@ MAX_FILE_SIZE_MB=10
 ENV=development
 PORT=8000
 HOST=0.0.0.0
-```
 
----
+Never commit .env or real API keys to Git.
 
-## Running Locally
-
-### Terminal 1: Start Backend Server
-```bash
+Running Locally
+Terminal 1: Start Backend Server
 cd backend
+
 # Make sure .venv is activated
 uvicorn app.main:app --reload --port 8000
-```
-Backend will be available at: `http://localhost:8000` (API Docs: `http://localhost:8000/docs`)
 
-### Terminal 2: Start Frontend Application
-```bash
+Backend:
+
+http://localhost:8000
+
+API documentation:
+
+http://localhost:8000/docs
+Terminal 2: Start Frontend Application
 cd frontend
 npm run dev
-```
-Frontend workspace will open at: `http://localhost:5173`
 
----
+Frontend:
 
-## API Endpoints
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health` | Application health, loaded models & vector store count |
-| `GET` | `/api/documents` | List all indexed documents with page and chunk metadata |
-| `POST` | `/api/documents/upload` | Upload & index PDF/TXT document with SHA-256 deduplication |
-| `GET` | `/api/documents/{document_id}` | Fetch metadata for a specific document |
-| `GET` | `/api/documents/{document_id}/suggestions` | Get smart suggested questions for a document |
-| `DELETE` | `/api/documents/{document_id}` | Delete document and purge vector embeddings from ChromaDB |
-| `DELETE` | `/api/documents` | Clear all documents from knowledge base |
-| `POST` | `/api/chat` | Submit question for Evidence-First RAG answering |
-
----
-
-## Testing
-
-### Run tests:
-```bash
+http://localhost:5173
+API Endpoints
+Method	Endpoint	Description
+GET	/health	Application health and system information
+GET	/api/documents	List indexed documents with metadata
+POST	/api/documents/upload	Upload and index PDF/TXT documents
+GET	/api/documents/{document_id}	Fetch metadata for a document
+GET	/api/documents/{document_id}/suggestions	Get suggested questions
+DELETE	/api/documents/{document_id}	Delete document and associated vectors
+DELETE	/api/documents	Clear all indexed documents
+POST	/api/chat	Submit a grounded document question
+Testing
+Run Tests
 python -m pytest backend/tests -v
-```
+Test Suite Summary
+18 passed
 
-### Test Suite Summary:
-```
-backend/tests/test_api.py::test_health_check_endpoint PASSED             [  6%]
-backend/tests/test_api.py::test_document_upload_and_deduplication PASSED [ 13%]
-backend/tests/test_api.py::test_grounded_question_answering PASSED       [ 20%]
-backend/tests/test_api.py::test_unknown_question_anti_hallucination PASSED [ 26%]
-backend/tests/test_api.py::test_empty_question_rejected PASSED           [ 33%]
-backend/tests/test_chunker.py::test_chunking_metadata_preservation PASSED [ 40%]
-backend/tests/test_chunker.py::test_chunker_section_detection PASSED     [ 46%]
-backend/tests/test_parser.py::test_pdf_parsing_preserves_pages_and_sections PASSED [ 53%]
-backend/tests/test_parser.py::test_txt_parsing PASSED                    [ 60%]
-backend/tests/test_parser.py::test_empty_file_rejected PASSED            [ 66%]
-backend/tests/test_parser.py::test_unsupported_file_extension_rejected PASSED [ 73%]
-backend/tests/test_parser.py::test_corrupt_pdf_rejected PASSED           [ 80%]
-backend/tests/test_retriever_confidence.py::test_confidence_high_with_strong_similarity PASSED [ 86%]
-backend/tests/test_retriever_confidence.py::test_confidence_medium_with_moderate_similarity PASSED [ 93%]
-backend/tests/test_retriever_confidence.py::test_confidence_low_when_below_threshold_or_empty PASSED [100%]
+The final test suite covers:
 
-======================= 15 passed, 1 warning in 13.03s ========================
-```
+✓ Health check endpoint
+✓ Document upload
+✓ Duplicate document detection
+✓ Grounded question answering
+✓ Unknown-question anti-hallucination behavior
+✓ Empty question validation
+✓ Chunking metadata preservation
+✓ Section detection
+✓ PDF parsing with page preservation
+✓ TXT parsing
+✓ Empty file rejection
+✓ Unsupported file extension rejection
+✓ Corrupt PDF rejection
+✓ High-confidence retrieval
+✓ Medium-confidence retrieval
+✓ Low-confidence retrieval
+✓ Grounding-aware confidence
+✓ Hybrid retrieval / relevance behavior
+Example Demo Questions
 
----
+The following questions can be used with the sample employee handbook:
 
-## License
+What are the normal working hours?
 
-MIT License. Developed for enterprise document intelligence.
+How many days per week can employees work remotely?
+
+When does an employee receive their first performance review?
+
+How many hours per week must an employee work to be considered full-time?
+
+What should an employee do if they expect to arrive late?
+Hallucination Test
+
+Ask:
+
+What is the company's annual performance bonus?
+
+Expected behavior:
+
+Information not available in the uploaded documents.
+
+The system should not invent a bonus amount or generate unsupported information.
+
+AI Tools Used
+
+AI-assisted development tools were used during implementation for:
+
+Exploring implementation approaches for RAG, retrieval, chunking, and grounding.
+Debugging retrieval behavior and edge cases.
+Reviewing code structure and generating test ideas.
+Refining prompts and response behavior.
+Improving documentation and README content.
+
+AI-generated suggestions were reviewed, tested, debugged, and adapted before being included in the final implementation.
+
+Design Decisions
+Why Local Embeddings?
+
+all-MiniLM-L6-v2 runs locally and avoids requiring a separate external embedding API.
+
+This keeps the embedding pipeline simple and reduces external API dependency.
+
+Why ChromaDB?
+
+ChromaDB provides lightweight persistent vector storage suitable for a focused RAG application without requiring additional external infrastructure.
+
+Why FastAPI?
+
+FastAPI provides a clean API layer with request validation, automatic API documentation, and straightforward integration with the retrieval and LLM services.
+
+Why React + TypeScript?
+
+React provides a flexible interface for document management, chat, evidence inspection, and application state.
+
+TypeScript improves type safety and maintainability across the frontend.
+
+Why Hybrid Retrieval?
+
+Pure semantic similarity can sometimes miss exact policy terminology, dates, numbers, and important keywords.
+
+DocuPilot combines semantic similarity with keyword coverage and reranking to improve retrieval quality.
+
+Why Deterministic Unknown Handling?
+
+A document assistant should not treat every question as answerable.
+
+If sufficient evidence cannot be retrieved, the system returns a deterministic unknown response instead of asking the LLM to infer or invent an answer.
+
+Why Backend Source Validation?
+
+Source attribution should not depend entirely on generated text.
+
+The backend stores document metadata alongside each chunk and resolves returned source identifiers against those stored records before displaying the Evidence Trail.
+
+Limitations
+
+The current implementation is intentionally scoped for the take-home assignment.
+
+Known limitations include:
+
+Scanned/image-only PDFs require OCR support, which is not currently included.
+PDF extraction quality depends on document structure.
+Complex tables may require specialized table extraction.
+The current upload size limit is configured for lightweight document workflows.
+ChromaDB runs locally rather than as a distributed production vector service.
+The application depends on the configured Groq API for LLM generation.
+Authentication and multi-user access control are not implemented.
+The current application is not designed for distributed production deployment.
+Retrieval thresholds may require tuning for different document collections.
+Large-scale document evaluation and retrieval benchmarking are not included.
+Future Improvements
+
+With additional development time, the following improvements could be added:
+
+OCR support for scanned PDFs.
+DOCX, CSV and XLSX ingestion.
+Cross-document comparison mode.
+Improved table-aware retrieval.
+BM25 + vector hybrid retrieval.
+Dedicated cross-encoder reranking.
+Streaming LLM responses.
+Authentication and role-based access control.
+Cloud-based vector storage for larger deployments.
+Automated retrieval evaluation datasets and metrics.
+Document versioning and change tracking.
+Production observability and monitoring.
+Security
+
+The project follows several basic security practices:
+
+API keys are stored in environment variables.
+Real secrets are excluded from Git.
+.env files are not committed.
+Uploaded documents are processed locally for extraction and embeddings.
+Only retrieved evidence is passed to the LLM rather than entire document contents.
+Backend validation is applied to document and API inputs.
+Source metadata is resolved by the backend instead of trusting generated citation text.
+Development Time
+
+The implementation was completed within the assignment's requested time constraint.
+
+## Development Time
+
+DocuPilot was developed within the assignment's specified 8-hour time constraint.
+
+| Activity | Time |
+| :--- | ---: |
+| Problem understanding & architecture | Included within the 8-hour development window |
+| Core development & RAG implementation | Included within the 8-hour development window |
+| Retrieval tuning, testing & debugging | Included within the 8-hour development window |
+| UI, documentation & final submission preparation | Included within the 8-hour development window |
+| **Total** | **8 hours** |
+
+DocuPilot implements the core requirements of the Smart Document Assistant assignment:
+
+Requirement	Implementation
+PDF upload	PyMuPDF-based parser
+TXT upload	Native TXT parser
+Text extraction	Document parser
+Chunking	Section / paragraph / sentence-aware chunker
+Embeddings	Local MiniLM embeddings
+Searchable store	Persistent ChromaDB
+Question answering	FastAPI + RAG + Groq
+Grounded answers	Retrieved evidence only
+Source attribution	Backend-verified source IDs
+Unknown questions	Deterministic NOT_FOUND handling
+Creative feature	Evidence Trail + suggestions + confidence
+Multi-document reasoning	Document-scope retrieval
+Architecture	docs/architecture.png
+Testing	18 automated tests
+Documentation	README + setup + design decisions
+License
+
+MIT License.
+
+Developed as a GenAI take-home project focused on grounded document intelligence, retrieval-augmented generation, source attribution, and hallucination-aware question answering.
+
+
+### Final checks before you commit
+
+Only **one placeholder** remains intentionally:
+
+```text
+https://github.com/YOUR_GITHUB_USERNAME/docupilot.git
+
+Replace that with your real repository URL.
+
+Also keep:
+
+GROQ_API_KEY=your_groq_api_key_here

@@ -30,7 +30,7 @@ export const MainWorkspace: React.FC<MainWorkspaceProps> = ({
     <main className="flex-1 flex flex-col h-full bg-[#F8FAFC] overflow-hidden">
       {/* Error alert if present */}
       {chatError && (
-        <div className="mx-4 mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2">
+        <div className="mx-4 mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2 shadow-subtle">
           <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
           <span>{chatError}</span>
         </div>
@@ -47,7 +47,7 @@ export const MainWorkspace: React.FC<MainWorkspaceProps> = ({
       />
 
       {/* Bottom Query & Suggestions Bar */}
-      <div className="p-4 lg:px-8 border-t border-slate-200/90 bg-white space-y-3 shrink-0 shadow-lg">
+      <div className="p-4 lg:px-8 border-t border-slate-200 bg-white shadow-card space-y-3 shrink-0">
         {/* Suggested questions chips if conversation is active */}
         {hasDocuments && messages.length > 0 && suggestedQuestions.length > 0 && (
           <SuggestedQuestions

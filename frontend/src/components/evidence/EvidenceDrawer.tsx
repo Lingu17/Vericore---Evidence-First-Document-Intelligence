@@ -17,8 +17,14 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
   if (!isOpen || !evidence) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-xs transition-opacity lg:hidden animate-fade-in">
-      <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-left">
+    <div
+      className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-xs transition-opacity lg:hidden animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-left"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="h-14 px-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-brand-600" />
@@ -28,13 +34,13 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
+            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
           <EvidenceCard evidence={evidence} />
         </div>
       </div>
