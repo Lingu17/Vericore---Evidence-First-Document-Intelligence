@@ -1,25 +1,62 @@
-Vericore
-
-Evidence-First Document Intelligence
+🚀 Vericore
 
 <p align="center">
-  <strong>Upload documents. Ask questions. Verify every answer against the source.</strong>
+  <strong>Evidence-First Document Intelligence for Grounded Business Q&A, Retrieval, and Source Verification.</strong>
 </p>
 
 <p align="center">
-  A focused RAG workspace for grounded document Q&A, source attribution, and evidence inspection.
+  Upload business documents, ask questions in natural language, and inspect the exact evidence behind every grounded answer.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-2563EB?style=for-the-badge" alt="React + TypeScript">
-  <img src="https://img.shields.io/badge/Backend-FastAPI-059669?style=for-the-badge" alt="FastAPI">
-  <img src="https://img.shields.io/badge/RAG-Hybrid%20Retrieval-7C3AED?style=for-the-badge" alt="Hybrid RAG">
-  <img src="https://img.shields.io/badge/Tests-18%20Passed-16A34A?style=for-the-badge" alt="18 tests passed">
+  <a href="https://github.com/Lingu17/Vericore---Evidence-First-Document-Intelligence">💻 GitHub</a> •
+  <a href="#-quick-start">⚡ Quick Start</a> •
+  <a href="#-architecture">🏗 Architecture</a> •
+  <a href="#-product-preview">📸 Product Preview</a>
 </p>
 
-Product Preview
+<p align="center">
 
-Home / Landing
+
+
+
+
+
+
+
+
+
+</p>
+
+✨ Overview
+
+Vericore is an evidence-first document intelligence workspace designed for business documents and knowledge workflows.
+
+Instead of acting as an unconstrained chat interface, Vericore retrieves relevant information from uploaded documents before generating an answer.
+
+Every grounded response can be inspected through the Evidence Trail, which exposes the source document, page, section, match information, stored excerpt, and chunk identifier used to support the response.
+
+When the required information is not sufficiently supported by the uploaded documents, Vericore returns:
+
+Information not available in the uploaded documents.
+
+Built for:
+
+HR & People Operations
+
+Operations Teams
+
+Finance Teams
+
+Legal & Compliance
+
+Knowledge Management
+
+Document-heavy business workflows
+
+📸 Product Preview
+
+Landing Page
 
 
 
@@ -31,366 +68,139 @@ Evidence Trail
 
 
 
-Repository assets: save the three UI screenshots above inside docs/screenshots/ using the exact filenames shown.
+Architecture
 
-The architecture image is included below and should remain at docs/architecture.png.
 
-What is Vericore?
 
-Vericore is an evidence-first document intelligence workspace for business documents and knowledge workflows.
+🎯 The Problem
 
-Instead of behaving like an unconstrained chat wrapper, Vericore answers questions from retrieved and verified document context. Every grounded answer can be inspected through an Evidence Trail showing the source file, page, section, match information, and stored evidence passage used for the response.
-
-When the required information is not sufficiently supported by the uploaded documents, Vericore returns:
-
-Information not available in the uploaded documents.
-
-The goal is simple:
-
-Retrieve → Answer → Verify
-
-Why Vericore?
-
-Business information is often distributed across:
+Business information is often spread across lengthy documents such as:
 
 Employee handbooks
 
 Company policies
 
-SOPs
-
 Benefits documents
+
+Standard operating procedures
 
 Internal agreements
 
 Operational documentation
 
-Reports and knowledge bases
+Business reports
 
-Searching these documents manually can be slow. A conventional AI assistant can make search easier, but an answer without inspectable evidence can be difficult to review.
+Finding a specific answer manually can require searching through multiple pages and documents.
 
-Vericore puts the retrieval and evidence layer first.
+A generic AI assistant introduces another problem: it may produce a plausible answer even when the required information is not actually present.
 
-The core idea
+Vericore is designed around a different workflow:
 
-Document
-   ↓
-Extract
-   ↓
-Chunk
-   ↓
-Embed
+Upload
    ↓
 Retrieve
    ↓
 Verify
    ↓
-Generate
+Answer
    ↓
 Inspect Evidence
 
-Key Features
+The answer is only generated after relevant document evidence has been retrieved.
 
-Feature
+💡 What Vericore Does
 
-Description
+Vericore turns uploaded PDF and TXT files into a searchable knowledge workspace.
 
-📄 PDF & TXT ingestion
+Users can:
 
-Extracts and indexes business documents
+✅ Upload business documents
 
-🔎 Semantic search
+✅ Extract and index document content
 
-Finds conceptually relevant document passages
+✅ Ask natural-language questions
 
-⚡ Hybrid retrieval
+✅ Search across multiple documents
 
-Combines semantic similarity with keyword coverage
+✅ Retrieve relevant evidence
 
-🧠 RAG
+✅ Generate concise grounded answers
 
-Generates answers from retrieved evidence
+✅ Inspect page-level source information
 
-🛡️ Grounding gate
+✅ Identify unsupported questions
 
-Rejects insufficient evidence before generation
+✅ View evidence confidence signals
 
-📌 Source attribution
+✅ Use suggested questions
 
-Preserves document, page, section, and chunk metadata
+✅ Ask contextual follow-up questions
 
-🔍 Evidence Trail
+🔥 Core Features
 
-Inspect the exact stored passage behind an answer
+📄 Document Ingestion
 
-🚫 Unknown handling
+PDF support
 
-Clearly states when information is unavailable
+TXT support
 
-📚 Multi-document retrieval
+Page-by-page PDF extraction
 
-Searches across multiple indexed documents
+Text normalization
 
-💬 Conversation memory
+Section and heading detection
 
-Supports limited contextual follow-up questions
+SHA-256 duplicate detection
 
-💡 Suggested questions
+Document-level deletion
 
-Generates useful questions from document structure
+🔎 Hybrid Retrieval
 
-♻️ SHA-256 deduplication
+Vericore combines multiple retrieval signals:
 
-Avoids reprocessing identical documents
+Semantic Similarity
+        +
+Keyword Coverage
+        +
+Candidate Re-ranking
 
-🚀 Answer caching
+This helps retrieval handle both natural-language questions and precise business terminology such as:
 
-Avoids repeated generation for identical evidence-backed queries
+Policy names
 
-📊 Evidence confidence
+Dates
 
-Shows retrieval-based confidence signals
+Numbers
 
-🖥️ B2B workspace
+Benefit terms
 
-Desktop-first document + chat + evidence interface
+Department terminology
 
-Product Workflow
+Procedural phrases
 
-┌───────────────┐
-│  01  UPLOAD   │
-│ PDF / TXT     │
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐
-│  02  INDEX    │
-│ Extract       │
-│ Chunk         │
-│ Embed         │
-│ Store         │
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐
-│  03  ASK      │
-│ Natural       │
-│ language      │
-│ question      │
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐
-│  04  RETRIEVE │
-│ Semantic +    │
-│ keyword       │
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐
-│  05  VERIFY   │
-│ Relevance +   │
-│ grounding     │
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐
-│  06  ANSWER   │
-│ Grounded LLM  │
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐
-│  07  INSPECT  │
-│ Evidence      │
-│ Trail         │
-└───────────────┘
+🧠 Grounded AI Answers
 
-Architecture
+The LLM receives only selected retrieved evidence rather than the complete uploaded document.
 
+This keeps the generation step focused on the information retrieved from the knowledge workspace.
 
+Answers are intentionally concise and direct.
 
-Vericore follows an Evidence-First RAG Architecture:
+🛡️ Hallucination-Aware Unknown Handling
 
-                           ┌──────────────────────┐
-                           │        User          │
-                           └──────────┬───────────┘
-                                      │
-                                      ▼
-                           ┌──────────────────────┐
-                           │ React + TypeScript   │
-                           │       Frontend       │
-                           └──────────┬───────────┘
-                                      │
-                                      ▼
-                           ┌──────────────────────┐
-                           │    FastAPI Backend   │
-                           └──────────┬───────────┘
-                                      │
-                  ┌───────────────────┴───────────────────┐
-                  │                                       │
-                  ▼                                       ▼
-       ┌─────────────────────┐                 ┌─────────────────────┐
-       │ Document Ingestion  │                 │   Query Pipeline    │
-       └──────────┬──────────┘                 └──────────┬──────────┘
-                  │                                       │
-        ┌─────────┴─────────┐                             ▼
-        │                   │                   Query Normalization
-        ▼                   ▼                             │
-     PDF/TXT             Extraction                         ▼
-        │                   │                    Local Query Embedding
-        └─────────┬─────────┘                             │
-                  ▼                                       ▼
-        Section-Aware Chunking                    ChromaDB Search
-                  │                                       │
-                  ▼                                       ▼
-        Local MiniLM Embeddings                    Candidate Pool
-                  │                                       │
-                  └───────────────┐               ┌───────┘
-                                  ▼               ▼
-                              ChromaDB     Hybrid Re-ranking
-                                               │
-                               ┌───────────────┴───────────────┐
-                               │                               │
-                               ▼                               ▼
-                     Semantic Similarity                 Keyword Coverage
-                               │                               │
-                               └───────────────┬───────────────┘
-                                               ▼
-                                   Relevance / Grounding Gate
-                                               │
-                              ┌────────────────┴────────────────┐
-                              │                                 │
-                              ▼                                 ▼
-                    Insufficient Evidence              Sufficient Evidence
-                              │                                 │
-                              ▼                                 ▼
-                    Deterministic Unknown             Evidence Selection
-                                                                  │
-                                                                  ▼
-                                                            Answer Cache
-                                                                  │
-                                                                  ▼
-                                                          Grounded Prompt
-                                                                  │
-                                                                  ▼
-                                                         Groq GPT-OSS 20B
-                                                                  │
-                                                                  ▼
-                                                        Source ID Validation
-                                                                  │
-                                                                  ▼
-                                                    Verified Answer + Evidence
-                                                                  │
-                                                                  ▼
-                                                        Evidence Trail UI
+Vericore does not assume that every question has an answer.
 
-Retrieval Pipeline
-
-User Question
-     │
-     ▼
-Query Normalization
-     │
-     ▼
-Local Query Embedding
-     │
-     ▼
-ChromaDB Semantic Search
-     │
-     ▼
-Candidate Pool
-     │
-     ▼
-Hybrid Re-ranking
-     ├── Semantic Similarity
-     └── Keyword Coverage
-     │
-     ▼
-Relevance / Grounding Gate
-     │
-     ├── Insufficient Evidence
-     │        │
-     │        ▼
-     │   Deterministic NOT_FOUND
-     │
-     └── Sufficient Evidence
-              │
-              ▼
-      Adaptive Evidence Selection
-              │
-              ▼
-          Answer Cache
-              │
-              ▼
-       Grounded Prompt
-              │
-              ▼
-       Groq GPT-OSS 20B
-              │
-              ▼
-      Backend Source Validation
-              │
-              ▼
-       Answer + Evidence Trail
-
-Hallucination Prevention
-
-Vericore uses multiple layers to reduce unsupported answers.
-
-1. Retrieval Before Generation
-
-The LLM does not receive complete uploaded documents.
-
-Only selected retrieved evidence chunks are passed to the generation step.
-
-2. Hybrid Retrieval
-
-Retrieval combines:
-
-Semantic similarity
-
-Keyword coverage
-
-Candidate reranking
-
-This helps with questions containing important policy terms, dates, numbers, and specific terminology.
-
-3. Relevance / Grounding Gate
-
-If retrieved evidence is not sufficiently relevant, Vericore returns the deterministic unknown response instead of asking the LLM to guess.
+When sufficient supporting evidence cannot be retrieved, the system returns:
 
 Information not available in the uploaded documents.
 
-4. Grounded Prompting
+This prevents the application from presenting unsupported information as a document-backed fact.
 
-The LLM is instructed to answer using only the supplied evidence.
+🔍 Evidence Trail
 
-5. Backend Source Validation
+The Evidence Trail is the core product differentiator.
 
-Retrieved chunks contain internal source identifiers.
-
-The LLM can return those identifiers, but the backend resolves them against stored document metadata before the Evidence Trail is rendered.
-
-This prevents generated responses from independently fabricating:
-
-File names
-
-Page numbers
-
-Section names
-
-Evidence references
-
-6. Concise Answers
-
-Answers are intentionally short and direct so the response stays focused on the retrieved evidence.
-
-Evidence Trail
-
-The Evidence Trail is the main product differentiator.
-
-For a grounded answer, the user can inspect:
+Users can inspect:
 
 Source document
 
@@ -404,63 +214,209 @@ Exact stored excerpt
 
 Chunk identifier
 
+The interface keeps the supporting evidence attached to the answer so users can verify where the information came from.
+
+📊 Evidence Confidence
+
+Vericore calculates evidence confidence from retrieval and grounding signals in the backend.
+
+The confidence indicator is based on system retrieval signals rather than asking the LLM to invent a confidence probability.
+
+📚 Multi-Document Workspace
+
+Upload multiple documents and retrieve information across the indexed knowledge workspace.
+
 Example:
 
-┌──────────────────────────────────────┐
-│ EVIDENCE TRAIL                       │
-├──────────────────────────────────────┤
-│ Source                                │
-│ Employee Handbook.pdf                 │
-│                                      │
-│ Page                                  │
-│ 14                                   │
-│                                      │
-│ Section                               │
-│ Performance Reviews                   │
-│                                      │
-│ Match                                 │
-│ Semantic + keyword evidence           │
-│                                      │
-│ Stored excerpt                        │
-│ "You will have your first performance │
-│ review at the end of your first..."   │
-└──────────────────────────────────────┘
+Employee Handbook
+        +
+Leave Policy
+        +
+Remote Work FAQ
+        ↓
+     Question
+        ↓
+Relevant Evidence
+        ↓
+ Grounded Answer
 
-The evidence displayed in the UI comes from stored document metadata and retrieved content rather than being invented by the interface.
+💡 Suggested Questions
 
-Document Processing
+Vericore generates useful document questions from document structure and section headings.
 
-Vericore supports:
+This helps users discover relevant information without requiring an additional LLM call during ingestion.
 
-PDF
+💬 Lightweight Conversation Memory
 
-TXT
+The workspace supports contextual follow-up questions while limiting how much previous conversation is passed to the LLM.
 
-For PDFs, text is extracted page by page using PyMuPDF.
+This keeps follow-up questions useful while controlling unnecessary context.
 
-During ingestion:
+♻️ SHA-256 Document Deduplication
 
-Validate the uploaded file.
+Uploaded files are hashed before processing.
 
-Compute a SHA-256 content hash.
+If an identical document has already been indexed, Vericore can avoid unnecessary re-processing and embedding work.
 
-Detect duplicate documents.
+⚡ Answer Caching
 
-Extract text.
+Repeated questions with the same document scope and evidence can return cached results instead of triggering another generation request.
 
-Normalize text.
+🏗 System Architecture
 
-Detect headings and sections.
+                         ┌─────────────────────┐
+                         │        User         │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │ React + TypeScript  │
+                         │      Frontend       │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │   FastAPI Backend   │
+                         └──────────┬──────────┘
+                                    │
+                  ┌─────────────────┴─────────────────┐
+                  │                                   │
+                  ▼                                   ▼
+        ┌───────────────────┐              ┌───────────────────┐
+        │ Document Pipeline │              │  Query Pipeline   │
+        └─────────┬─────────┘              └─────────┬─────────┘
+                  │                                  │
+                  ▼                                  ▼
+           PDF / TXT Parser                  Query Normalization
+                  │                                  │
+                  ▼                                  ▼
+        Section-Aware Chunking                MiniLM Embedding
+                  │                                  │
+                  ▼                                  ▼
+          Local Embeddings                     ChromaDB Search
+                  │                                  │
+                  └──────────────┐        ┌──────────┘
+                                 ▼        ▼
+                              ChromaDB
+                                 │
+                                 ▼
+                         Hybrid Re-ranking
+                         ┌───────┴────────┐
+                         ▼                ▼
+                  Semantic Match    Keyword Coverage
+                         │                │
+                         └───────┬────────┘
+                                 ▼
+                      Relevance / Grounding Gate
+                                 │
+                    ┌────────────┴────────────┐
+                    ▼                         ▼
+           Insufficient Evidence       Sufficient Evidence
+                    │                         │
+                    ▼                         ▼
+          Deterministic Unknown       Evidence Selection
+                                              │
+                                              ▼
+                                         Answer Cache
+                                              │
+                                              ▼
+                                       Grounded Prompt
+                                              │
+                                              ▼
+                                      Groq GPT-OSS 20B
+                                              │
+                                              ▼
+                                     Source ID Validation
+                                              │
+                                              ▼
+                                  Verified Answer + Evidence
+                                              │
+                                              ▼
+                                       Evidence Trail
 
-Split text into searchable chunks.
+🔄 Retrieval Pipeline
 
-Preserve page and document metadata.
+User Question
+      │
+      ▼
+Query Normalization
+      │
+      ▼
+Local Query Embedding
+      │
+      ▼
+ChromaDB Semantic Search
+      │
+      ▼
+Candidate Pool
+      │
+      ▼
+Hybrid Re-ranking
+      ├── Semantic Similarity
+      └── Keyword Coverage
+      │
+      ▼
+Relevance / Grounding Gate
+      │
+      ├── Insufficient Evidence
+      │        │
+      │        ▼
+      │   Information Not Found
+      │
+      └── Sufficient Evidence
+               │
+               ▼
+       Adaptive Evidence Selection
+               │
+               ▼
+           Answer Cache
+               │
+               ▼
+        Grounded Prompt
+               │
+               ▼
+        Groq GPT-OSS 20B
+               │
+               ▼
+       Backend Source Validation
+               │
+               ▼
+      Answer + Evidence Trail
 
-Generate local embeddings.
+🧩 Document Processing Pipeline
 
-Store vectors and metadata in ChromaDB.
+When a document is uploaded:
 
-Each chunk preserves metadata such as:
+PDF / TXT
+   │
+   ▼
+File Validation
+   │
+   ▼
+SHA-256 Hash
+   │
+   ▼
+Duplicate Check
+   │
+   ▼
+Text Extraction
+   │
+   ▼
+Text Normalization
+   │
+   ▼
+Section Detection
+   │
+   ▼
+Page / Paragraph / Sentence Chunking
+   │
+   ▼
+Local MiniLM Embeddings
+   │
+   ▼
+Persistent ChromaDB
+
+Each indexed chunk retains source metadata such as:
 
 document_id
 filename
@@ -470,23 +426,7 @@ chunk_id
 source_id
 text
 
-Intelligent Chunking
-
-Vericore uses section-aware chunking rather than treating a document as one large block.
-
-The chunking strategy considers:
-
-Sections
-
-Paragraphs
-
-Sentences
-
-Chunk size
-
-Chunk overlap
-
-This helps preserve useful policy context while keeping retrieval units manageable.
+🧠 AI & Retrieval Design
 
 Local Embeddings
 
@@ -494,25 +434,17 @@ Vericore uses:
 
 sentence-transformers/all-MiniLM-L6-v2
 
-Embeddings run locally.
+The embedding model runs locally and produces a 384-dimensional representation.
 
-Benefits
+This avoids requiring a separate external embedding API.
 
-No separate embedding API is required.
+Vector Database
 
-Reduced external embedding dependencies.
+Vericore uses ChromaDB for persistent local vector storage.
 
-Simple local retrieval pipeline.
+Stored information includes:
 
-384-dimensional vector representation.
-
-Vector Storage
-
-Vericore uses persistent ChromaDB for local vector storage.
-
-The vector store contains:
-
-Embeddings
+Document embeddings
 
 Chunk text
 
@@ -524,226 +456,169 @@ Section metadata
 
 Source identifiers
 
-It supports similarity search and document-level deletion.
+LLM Generation
 
-Hybrid Retrieval
+The current generation layer uses:
 
-Pure semantic similarity can sometimes miss exact terminology.
+Provider: Groq
+Model: openai/gpt-oss-20b
 
-Business documents frequently contain:
+The LLM receives only the selected evidence needed for the question.
 
-Policy names
+🛡️ Hallucination Prevention
 
-Dates
+Vericore uses multiple safeguards.
 
-Numbers
+1. Retrieval Before Generation
 
-Specific benefit names
+The system retrieves evidence before asking the LLM to generate an answer.
 
-Department terminology
+2. Limited Context
 
-Exact procedural phrases
+The complete uploaded document is not sent to the LLM.
 
-Vericore therefore combines:
+Only selected evidence chunks are included.
 
-Semantic Similarity
-        +
-Keyword Coverage
-        +
-Candidate Re-ranking
+3. Hybrid Retrieval
 
-This gives the retrieval layer both semantic and lexical signals.
+Semantic similarity is combined with keyword coverage.
 
-Token & LLM Usage Optimization
+4. Relevance Gate
 
-Vericore is designed to minimize unnecessary LLM usage.
+If evidence is not sufficiently relevant, the generation step can be skipped.
+
+5. Grounded Prompt
+
+The model is instructed to answer using only the supplied evidence.
+
+6. Backend Source Validation
+
+The backend resolves internal source identifiers against stored metadata before displaying source information.
+
+This prevents generated text from independently fabricating:
+
+File names
+
+Page numbers
+
+Section names
+
+Evidence references
+
+⚡ Token & API Optimization
+
+Vericore is designed to reduce unnecessary generation work.
 
 Local embeddings
 
-all-MiniLM-L6-v2 runs locally.
+Embedding generation runs locally.
 
 Retrieval before generation
 
-Only selected evidence chunks are sent to the LLM.
+Only relevant chunks are passed to the LLM.
 
 Relevance gating
 
-Questions with insufficient evidence can be rejected before LLM generation.
+Unsupported questions can be rejected before LLM generation.
 
 Adaptive evidence selection
 
-Highly relevant questions can use fewer chunks while less direct questions can use additional supporting evidence.
+The system can select a smaller or larger evidence set based on retrieval relevance.
 
 Duplicate evidence removal
 
 Near-duplicate chunks are filtered before context assembly.
 
-Trimmed context payloads
+Trimmed prompts
 
-Only required source metadata and extracted evidence are passed to the LLM.
-
-Minimal prompts
-
-The prompt uses concise QUESTION: and EVIDENCE: blocks.
+The generation payload contains only the question and required evidence.
 
 Limited conversation history
 
-Standalone questions do not require previous turns. Follow-up questions retain only limited recent context.
+Only limited recent context is retained for follow-up questions.
 
 Short structured output
 
-Current configuration:
-
-MAX_OUTPUT_TOKENS=250
-TEMPERATURE=0
+MAX_OUTPUT_TOKENS = 250
+TEMPERATURE = 0
 
 Deterministic suggestions
 
 Suggested questions are generated from document structure without an LLM call during ingestion.
 
-SHA-256 deduplication
-
-Duplicate files are detected before unnecessary re-embedding.
-
 Answer caching
 
-Repeated identical questions with the same evidence scope can return cached results.
+Identical evidence-backed questions can use cached responses.
 
-Multi-Document Reasoning
+🎨 Workspace Design
 
-Vericore can retrieve relevant evidence across multiple uploaded documents.
+The application uses a desktop-first B2B workspace with three functional areas:
 
-This enables workflows such as:
+┌─────────────────────────────────────────────────────────────┐
+│                         Vericore                            │
+├───────────────┬───────────────────────────┬─────────────────┤
+│               │                           │                 │
+│   Documents   │       Q&A Workspace       │ Evidence Trail │
+│               │                           │                 │
+│  Upload       │  Question                │  Source         │
+│  Indexed docs │  Answer                  │  Page           │
+│  Document     │  Confidence              │  Section        │
+│  management   │  Sources                 │  Excerpt        │
+│               │                           │  Chunk ID       │
+│               │                           │                 │
+└───────────────┴───────────────────────────┴─────────────────┘
 
-Employee Handbook
-       +
-Leave Policy
-       +
-Remote Work FAQ
-       ↓
-   Single Question
-       ↓
-Relevant Evidence
-       ↓
-Grounded Answer
+The interface is designed around a simple interaction:
 
-Document scope is maintained by the retrieval layer so answers can be associated with the actual indexed sources.
+Ask → Answer → Inspect
 
-Suggested Questions
-
-Vericore can generate useful suggested questions from document structure and section headings.
-
-The suggestions are designed to help users discover what a document can answer without requiring an LLM call during ingestion.
-
-Conversation Memory
-
-The application supports lightweight contextual follow-up questions while limiting how much previous conversation is passed to the LLM.
-
-This keeps follow-up interactions useful without unnecessarily increasing the generation context.
-
-Technology Stack
+🛠 Tech Stack
 
 Frontend
 
-Technology
-
-Purpose
-
 React 18
-
-User interface
 
 TypeScript
 
-Type-safe frontend
-
 Vite
-
-Development and production build
 
 Tailwind CSS
 
-Styling
-
 Lucide React
-
-UI icons
 
 Backend
 
-Technology
-
-Purpose
-
 Python 3.10+
-
-Backend language
 
 FastAPI
 
-API layer
-
 Uvicorn
-
-ASGI server
 
 Pydantic v2
 
-Validation
-
 PyMuPDF
-
-PDF extraction
-
-sentence-transformers
-
-Local embeddings
-
-ChromaDB
-
-Persistent vector storage
-
-Pytest
-
-Automated testing
-
-HTTPX
-
-API testing
 
 AI / Retrieval
 
-Component
-
-Technology
-
-Embedding model
+sentence-transformers
 
 all-MiniLM-L6-v2
 
-Vector store
-
 ChromaDB
 
-Retrieval
-
-Semantic + keyword hybrid retrieval
-
-LLM provider
-
-Groq
-
-LLM model
+Groq API
 
 openai/gpt-oss-20b
 
-Generation
+Testing
 
-Grounded, concise, evidence-constrained
+Pytest
 
-Project Structure
+HTTPX
 
-VERICORE/
+📂 Project Structure
+
+vericore/
 │
 ├── backend/
 │   ├── app/
@@ -824,53 +699,9 @@ VERICORE/
 ├── .env.example
 └── README.md
 
-Installation
+⚙️ Environment Variables
 
-Prerequisites
-
-Python 3.10+
-
-Node.js 18+
-
-npm
-
-Git
-
-1. Clone
-
-git clone https://github.com/Lingu17/Vericore---Evidence-First-Document-Intelligence.git
-cd Vericore---Evidence-First-Document-Intelligence
-
-2. Backend
-
-cd backend
-
-Windows PowerShell
-
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-
-Linux / macOS
-
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-Create the environment file:
-
-cp .env.example .env
-
-On Windows, copy .env.example to .env manually if cp is unavailable.
-
-3. Frontend
-
-cd ../frontend
-npm install
-
-Environment Variables
-
-Configure backend/.env:
+Backend
 
 # Groq
 GROQ_API_KEY=your_groq_api_key_here
@@ -885,7 +716,7 @@ MAX_HISTORY_MESSAGES=2
 # Vector database
 CHROMA_PATH=./chroma_db
 
-# Local embedding model
+# Local embeddings
 EMBEDDING_MODEL=all-MiniLM-L6-v2
 
 # Retrieval
@@ -907,33 +738,67 @@ ENV=development
 PORT=8000
 HOST=0.0.0.0
 
-Never commit .env or a real API key to Git.
+Never commit .env files or real API keys to Git.
 
-Run Locally
+🚀 Quick Start
 
-Terminal 1 — Backend
+Clone Repository
+
+git clone https://github.com/Lingu17/Vericore---Evidence-First-Document-Intelligence.git
+
+cd Vericore---Evidence-First-Document-Intelligence
+
+Backend Setup
 
 cd backend
-uvicorn app.main:app --reload --port 8000
 
-Backend:
+Windows PowerShell
 
-http://localhost:8000
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 
-FastAPI docs:
+Linux / macOS
 
-http://localhost:8000/docs
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
-Terminal 2 — Frontend
+Create the environment file:
+
+cp .env.example .env
+
+Add your Groq API key to .env.
+
+Frontend Setup
+
+Open a second terminal:
 
 cd frontend
+
+npm install
+
 npm run dev
 
 Frontend:
 
 http://localhost:5173
 
-API Endpoints
+Start Backend
+
+cd backend
+
+uvicorn app.main:app --reload --port 8000
+
+Backend:
+
+http://localhost:8000
+
+API documentation:
+
+http://localhost:8000/docs
+
+🔌 API Endpoints
 
 Method
 
@@ -957,7 +822,7 @@ POST
 
 /api/documents/upload
 
-Upload and index PDF/TXT
+Upload and index PDF/TXT documents
 
 GET
 
@@ -975,7 +840,7 @@ DELETE
 
 /api/documents/{document_id}
 
-Delete a document and vectors
+Delete a document and its vectors
 
 DELETE
 
@@ -989,17 +854,17 @@ POST
 
 Submit a grounded document question
 
-Testing
+🧪 Testing
 
-Run:
+Run the backend test suite:
 
 python -m pytest backend/tests -v
 
-Current test result:
+Current result:
 
 18 passed
 
-The test suite covers:
+Coverage includes:
 
 Health check
 
@@ -1007,7 +872,7 @@ Document upload
 
 Duplicate document detection
 
-Grounded Q&A
+Grounded question answering
 
 Unknown-question handling
 
@@ -1023,7 +888,7 @@ TXT parsing
 
 Empty file rejection
 
-Unsupported extension rejection
+Unsupported file extension rejection
 
 Corrupt PDF handling
 
@@ -1037,9 +902,9 @@ Grounding-aware confidence
 
 Hybrid retrieval / relevance behavior
 
-Demo Questions
+🎬 Demo Questions
 
-Use the sample employee handbook to demonstrate:
+The following questions can be used with the sample employee handbook:
 
 What are the normal working hours?
 
@@ -1051,7 +916,7 @@ How many hours per week must an employee work to be considered full-time?
 
 What should an employee do if they expect to arrive late?
 
-Hallucination Test
+🚫 Hallucination Test
 
 Ask:
 
@@ -1063,71 +928,29 @@ Information not available in the uploaded documents.
 
 The system should not invent a bonus amount or generate unsupported information.
 
-Design Decisions
+📊 Evidence Confidence
 
-Why Local Embeddings?
+Evidence confidence is calculated by the backend from retrieval and grounding signals.
 
-all-MiniLM-L6-v2 runs locally and avoids a separate external embedding API.
+It is not an LLM-generated probability.
 
-This keeps the embedding pipeline simple and reduces external API dependency.
+The UI can distinguish between:
 
-Why ChromaDB?
+High
+Medium
+Low
 
-ChromaDB provides lightweight persistent vector storage suitable for a focused RAG application without requiring additional external infrastructure.
+based on the available retrieval evidence.
 
-Why FastAPI?
-
-FastAPI provides:
-
-Clear API boundaries
-
-Request validation
-
-Automatic API documentation
-
-Straightforward integration with retrieval and LLM services
-
-Why React + TypeScript?
-
-React provides a flexible interface for:
-
-Document management
-
-Chat
-
-Evidence inspection
-
-Application state
-
-TypeScript improves type safety and maintainability.
-
-Why Hybrid Retrieval?
-
-Pure semantic similarity can sometimes miss exact policy terminology, dates, numbers, and keywords.
-
-Vericore combines semantic similarity with keyword coverage and reranking to improve retrieval for both conceptual and precise policy questions.
-
-Why Deterministic Unknown Handling?
-
-A document assistant should not treat every question as answerable.
-
-If sufficient evidence cannot be retrieved, Vericore returns a deterministic unknown response instead of asking the LLM to infer or invent an answer.
-
-Why Backend Source Validation?
-
-Source attribution should not depend entirely on generated text.
-
-The backend stores document metadata alongside each chunk and resolves returned source identifiers against those stored records before displaying the Evidence Trail.
-
-Security
+🔐 Security
 
 The project follows several basic security practices:
 
 API keys are stored in environment variables.
 
-.env files are not committed.
+.env files are excluded from Git.
 
-Real secrets are excluded from Git.
+Real secrets are not included in the repository.
 
 Uploaded documents are processed locally for extraction and embeddings.
 
@@ -1135,9 +958,9 @@ Only retrieved evidence is passed to the LLM rather than complete documents.
 
 Backend validation is applied to document and API inputs.
 
-Source metadata is resolved by the backend instead of trusting generated citation text.
+Source metadata is resolved by the backend rather than trusting generated citation text.
 
-Limitations
+⚠️ Limitations
 
 The current implementation is intentionally scoped for a focused RAG application.
 
@@ -1149,55 +972,87 @@ PDF extraction quality depends on document structure.
 
 Complex tables may require specialized extraction.
 
-The upload size limit is configured for lightweight workflows.
+Upload size is configured for lightweight document workflows.
 
-ChromaDB runs locally rather than as a distributed vector service.
+ChromaDB runs locally rather than as a distributed production vector service.
 
 LLM generation depends on the configured Groq API.
 
 Authentication and multi-user access control are not implemented.
 
-The current application is not designed for distributed production deployment.
+The application is not currently designed for distributed production deployment.
 
 Retrieval thresholds may require tuning for different document collections.
 
 Large-scale retrieval benchmarking is not included.
 
-Future Improvements
+🗺️ Roadmap
 
-Potential next steps include:
+Current
 
-OCR support for scanned PDFs
+PDF & TXT ingestion
 
-DOCX, CSV, and XLSX ingestion
+Document extraction
 
-Cross-document comparison mode
+Local embeddings
 
-Improved table-aware retrieval
+Persistent ChromaDB
 
-BM25 + vector hybrid retrieval
+Hybrid retrieval
 
-Dedicated cross-encoder reranking
+Grounded Q&A
 
-Streaming LLM responses
+Evidence Trail
 
-Authentication and role-based access control
+Unknown handling
 
-Cloud-based vector storage
+Multi-document retrieval
 
-Automated retrieval evaluation datasets and metrics
+Suggested questions
 
-Document versioning and change tracking
+Conversation memory
 
-Production observability and monitoring
+Answer caching
 
-AI-Assisted Development
+Evidence confidence
+
+Future
+
+OCR for scanned PDFs
+
+DOCX / CSV / XLSX ingestion
+
+Cross-document comparison
+
+Table-aware retrieval
+
+BM25 + vector retrieval
+
+Cross-encoder reranking
+
+Streaming responses
+
+Authentication
+
+Role-based access control
+
+Cloud vector infrastructure
+
+Document versioning
+
+Retrieval evaluation datasets
+
+Production observability
+
+🤖 AI-Assisted Development
 
 AI-assisted development tools were used during implementation for:
 
 Exploring RAG implementation approaches
 
-Debugging retrieval behavior and edge cases
+Debugging retrieval behavior
+
+Investigating edge cases
 
 Reviewing code structure
 
@@ -1205,21 +1060,25 @@ Generating test ideas
 
 Refining prompts
 
-Improving response behavior
+Improving answer behavior
 
 Refining project documentation
 
 AI-generated suggestions were reviewed, tested, debugged, and adapted before being included in the final implementation.
 
-Development Time
+⏱️ Development Time
 
 Vericore was developed within the assignment's specified 8-hour development constraint.
 
 The development window covered:
 
-Problem understanding and architecture
+Problem understanding
 
-Core frontend and backend implementation
+Architecture design
+
+Frontend implementation
+
+Backend implementation
 
 Document ingestion
 
@@ -1229,7 +1088,7 @@ Retrieval refinement
 
 Hallucination handling
 
-Evidence Trail implementation
+Evidence Trail
 
 Testing and debugging
 
@@ -1241,15 +1100,15 @@ Final verification
 
 Total development window: 8 hours
 
-Assignment Alignment
+📋 Assignment Alignment
 
-Requirement
+Assignment Requirement
 
 Vericore Implementation
 
 PDF upload
 
-PyMuPDF-based parser
+PyMuPDF parser
 
 TXT upload
 
@@ -1261,7 +1120,7 @@ Document parser
 
 Chunking
 
-Section / paragraph / sentence-aware chunker
+Section / paragraph / sentence-aware chunking
 
 Embeddings
 
@@ -1311,67 +1170,55 @@ Documentation
 
 README + setup + design decisions
 
-Sample Documents
+🤝 Contributing
 
-Sample documents are available under:
+Contributions are welcome.
 
-backend/sample_documents/
+1. Fork the repository
 
-Examples:
+git fork https://github.com/Lingu17/Vericore---Evidence-First-Document-Intelligence.git
 
-NovaTech_Benefits_Policy.pdf
-NovaTech_Employee_Handbook.pdf
-NovaTech_Leave_Policy.pdf
-NovaTech_Remote_Work_FAQ.txt
+2. Create a feature branch
 
-License
+git checkout -b feature/new-feature
 
-MIT License.
+3. Commit changes
 
-Project Summary
+git commit -m "Add new feature"
 
-Vericore — Evidence-First Document Intelligence
+4. Push your branch
 
-A GenAI document intelligence project focused on:
+git push origin feature/new-feature
 
-Retrieval-Augmented Generation
+5. Open a Pull Request
 
-Grounded question answering
+👨‍💻 Author
 
-Source attribution
+Lingraj Malipatil
 
-Evidence inspection
+GitHub:
 
-Hallucination-aware document search
+https://github.com/Lingu17
 
-Practical business document workflows
+LinkedIn:
 
-Built around one principle
+https://linkedin.com/in/lingraj-malipatil
 
-Don't just give an answer. Show the evidence behind it.
+⭐ Support
 
-Final Repository Checklist
+If Vericore is useful:
 
-Before publishing:
+⭐ Star the repository
 
-Add docs/screenshots/home.png
+🐛 Report an issue
 
-Add docs/screenshots/workspace.png
+💡 Suggest an improvement
 
-Add docs/screenshots/evidence-trail.png
+🤝 Contribute to the project
 
-Confirm docs/architecture.png exists
+<p align="center">
+  Built with React, FastAPI, ChromaDB, local embeddings, and grounded LLM retrieval.
+</p>
 
-Confirm .env is ignored
-
-Confirm no real API keys exist in Git history
-
-Run backend tests
-
-Run npm run build
-
-Verify the GitHub repository URL
-
-Verify the demo video link
-
-Verify README images render correctly on GitHub
+<p align="center">
+  <strong>Vericore — Retrieve. Answer. Verify.</strong>
