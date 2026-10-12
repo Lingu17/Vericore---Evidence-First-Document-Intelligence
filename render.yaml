@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: vericore-evidence
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ENV
+        value: production
+      - key: CHROMA_PATH
+        value: /data/chroma
+      - key: USE_MOCK_LLM
+        value: "false"
+      - key: WORKSPACE_USERNAME
+        value: owner
+      - key: WORKSPACE_PASSWORD
+        generateValue: true
+      - key: GROQ_API_KEY
+        sync: false

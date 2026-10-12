@@ -4,6 +4,7 @@ Handles document uploads, SHA-256 deduplication, parsing, chunking, embedding, i
 """
 
 import uuid
+from app.core.config import settings
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from app.core.logging import logger
 from app.models.schemas import (
@@ -59,11 +60,15 @@ async def upload_document(file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename missing in upload.")
 
-    filename = file.filename
+    filename = file.filename.replace("\\", "/").split("/")[-1]
     try:
-        content = await file.read()
+        content = await file.read(settings.max_file_size_bytes + 1)
+        if len(content) > settings.max_file_size_bytes:
+            raise HTTPException(status_code=413, detail="Document exceeds upload size limit.")
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Failed to read upload stream: {e}")
+        logger.error("Failed to read upload stream")
         raise HTTPException(status_code=400, detail="Could not read uploaded file content.")
 
     # 1. SHA-256 Deduplication check
@@ -89,7 +94,7 @@ async def upload_document(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Unexpected parsing failure for '{filename}': {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to parse document: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to parse document.")
 
     # 3. Generate unique document ID
     doc_id = f"doc_{uuid.uuid4().hex[:10]}"
@@ -128,7 +133,7 @@ async def upload_document(file: UploadFile = File(...)):
         )
     except Exception as e:
         logger.error(f"ChromaDB indexing error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to store vectors in database: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to store vectors in database.")
 
     logger.info(f"Document upload & indexing pipeline complete: '{filename}' ({doc_meta.chunk_count} chunks).")
     return DocumentUploadResponse(
