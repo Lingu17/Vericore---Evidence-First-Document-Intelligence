@@ -3,15 +3,14 @@ Local Embedding Service for DocuPilot.
 Uses sentence-transformers (all-MiniLM-L6-v2) for zero-cost, on-premise local vector embeddings.
 """
 
-from typing import Optional
-from sentence_transformers import SentenceTransformer
+from typing import Optional, Any
 from app.core.config import settings
 from app.core.logging import logger
 
 
 class EmbeddingService:
     _instance: Optional["EmbeddingService"] = None
-    _model: Optional[SentenceTransformer] = None
+    _model: Optional[Any] = None
 
     def __new__(cls) -> "EmbeddingService":
         if cls._instance is None:
@@ -24,14 +23,19 @@ class EmbeddingService:
         model_name = settings.EMBEDDING_MODEL
         logger.info(f"Loading local embedding model: '{model_name}'...")
         try:
-            self._model = SentenceTransformer(model_name)
+            if settings.EMBEDDING_BACKEND == "onnx":
+                from app.services.onnx_embeddings import OnnxEncoder
+                self._model = OnnxEncoder(model_name)
+            else:
+                from sentence_transformers import SentenceTransformer
+                self._model = SentenceTransformer(model_name)
             logger.info(f"Local embedding model '{model_name}' initialized successfully.")
         except Exception as e:
             logger.error(f"Failed to load embedding model '{model_name}': {e}")
             raise RuntimeError(f"Embedding model initialization failed: {e}")
 
     @property
-    def model(self) -> SentenceTransformer:
+    def model(self) -> Any:
         if self._model is None:
             self._initialize_model()
         return self._model  # type: ignore

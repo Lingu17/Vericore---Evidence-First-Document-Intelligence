@@ -1,26 +1,37 @@
-import React from 'react';
-import { ChatMessage, SourceEvidence } from '../../types';
-import { ConfidenceBadge } from '../common/ConfidenceBadge';
-import { UnknownQuestionCard } from './UnknownQuestionCard';
-import { FileText, ExternalLink, User, Bot, CheckCircle2 } from 'lucide-react';
+import React from "react";
+
+import { ChatMessage, SourceEvidence } from "../../types";
+
+import { ConfidenceBadge } from "../common/ConfidenceBadge";
+
+import { UnknownQuestionCard } from "./UnknownQuestionCard";
+
+import { FileText, ExternalLink, User, Bot, CheckCircle2 } from "lucide-react";
 
 interface MessageCardProps {
   message: ChatMessage;
+
   onSelectEvidence: (evidence: SourceEvidence) => void;
+
   onAskSuggestion?: (question: string) => void;
 }
 
 export const MessageCard: React.FC<MessageCardProps> = ({
   message,
+
   onSelectEvidence,
+
   onAskSuggestion,
 }) => {
-  if (message.role === 'user') {
+  if (message.role === "user") {
     return (
       <div className="flex items-start gap-3 justify-end my-4">
         <div className="max-w-2xl bg-slate-900 text-white px-4 py-3 rounded-2xl rounded-tr-sm shadow-card">
-          <p className="text-sm font-normal leading-relaxed">{message.content}</p>
+          <p className="text-sm font-normal leading-relaxed">
+            {message.content}
+          </p>
         </div>
+
         <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0 mt-0.5">
           <User className="w-4 h-4" />
         </div>
@@ -29,8 +40,14 @@ export const MessageCard: React.FC<MessageCardProps> = ({
   }
 
   // If assistant response is NOT_FOUND
-  if (message.status === 'not_found') {
-    return <UnknownQuestionCard message={message} onAskSuggestion={onAskSuggestion} />;
+
+  if (message.status === "not_found") {
+    return (
+      <UnknownQuestionCard
+        message={message}
+        onAskSuggestion={onAskSuggestion}
+      />
+    );
   }
 
   const sources = message.sources || [];
@@ -43,15 +60,20 @@ export const MessageCard: React.FC<MessageCardProps> = ({
 
       <div className="flex-1 max-w-3xl space-y-4">
         {/* Answer Container Card */}
+
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-card space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          <div className="flex flex-wrap gap-2 items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Grounded Answer
+                Answer
               </span>
+
               <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                 <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                Verified
+
+                {message.verification_method === "exact_passage"
+                  ? "Passage matched"
+                  : "Source cited"}
               </span>
             </div>
 
@@ -59,17 +81,70 @@ export const MessageCard: React.FC<MessageCardProps> = ({
           </div>
 
           {/* Answer text */}
+
           <div className="text-sm text-slate-800 leading-relaxed whitespace-pre-line font-normal">
-            {message.content}
+            {message.claims?.length
+              ? message.claims
+                  .filter((c) => c.status === "supported")
+                  .map((claim, i) => (
+                    <div key={i} className="mb-3">
+                      {claim.text}
+                      <div className="flex gap-2 mt-1">
+                        {claim.source_ids.map((id) => {
+                          const source = sources.find((s) => s.chunk_id === id);
+                          return source ? (
+                            <button
+                              key={id}
+                              className="text-xs text-brand-700 underline"
+                              onClick={() => onSelectEvidence(source)}
+                            >
+                              {source.filename} · p. {source.page}
+                            </button>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  ))
+              : message.content}
           </div>
 
+          {message.potential_conflicts?.map((conflict, i) => (
+            <div
+              key={i}
+              className="border border-amber-200 bg-amber-50 p-3 rounded-lg text-xs text-amber-900"
+            >
+              <strong>Potential policy conflict</strong>
+              <p className="mt-1">{conflict.explanation}</p>
+              <div className="flex gap-3 mt-2">
+                {[conflict.left_chunk_id, conflict.right_chunk_id].map((id) => {
+                  const source = sources.find((s) => s.chunk_id === id);
+                  return source ? (
+                    <button
+                      key={id}
+                      className="underline"
+                      onClick={() => onSelectEvidence(source)}
+                    >
+                      {source.filename}
+                    </button>
+                  ) : null;
+                })}
+              </div>
+            </div>
+          ))}
+          {message.claims?.some((c) => c.status === "unsupported") && (
+            <p className="text-xs text-amber-800">
+              Unsupported statements were withheld from this answer.
+            </p>
+          )}
           {/* Source Attribution list */}
+
           {sources.length > 0 && (
             <div className="pt-4 border-t border-slate-100 space-y-2.5">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
                   Sources ({sources.length})
                 </p>
+
                 <span className="text-[11px] text-slate-400">
                   Click to inspect full page excerpt
                 </span>
@@ -79,22 +154,38 @@ export const MessageCard: React.FC<MessageCardProps> = ({
                 {sources.map((src, idx) => (
                   <div
                     key={idx}
+
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onSelectEvidence(src);
+                      }
+                    }}
                     onClick={() => onSelectEvidence(src)}
+
                     className="group flex flex-col justify-between p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-brand-50/50 hover:border-brand-300 shadow-subtle hover:shadow-card transition-all duration-200 hover:-translate-y-px cursor-pointer select-none"
                   >
                     <div>
                       <div className="flex items-center gap-1.5 mb-1">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <FileText className="w-3.5 h-3.5 text-brand-600 shrink-0" />
-                          <span className="text-xs font-semibold text-slate-800 truncate" title={src.filename}>
-                            {src.filename || 'Untitled'}
+
+                          <span
+                            className="text-xs font-semibold text-slate-800 truncate"
+                            title={src.filename}
+                          >
+                            {src.filename || "Untitled"}
                           </span>
                         </div>
+
                         <div className="flex items-center gap-1.5 shrink-0">
                           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">
-                            Page {src.page ?? '?'}
+                            Page {src.page ?? "?"}
                           </span>
-                          {typeof src.similarity_score === 'number' && (
+
+                          {typeof src.similarity_score === "number" && (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                               {Math.round(src.similarity_score * 100)}%
                             </span>
@@ -109,12 +200,15 @@ export const MessageCard: React.FC<MessageCardProps> = ({
                       )}
 
                       <p className="text-xs text-slate-500 line-clamp-2 italic leading-snug">
-                        {src.evidence ? `"${src.evidence}"` : 'Excerpt unavailable'}
+                        {src.evidence
+                          ? `"${src.evidence}"`
+                          : "Excerpt unavailable"}
                       </p>
                     </div>
 
                     <div className="mt-2 pt-1.5 border-t border-slate-200 flex items-center justify-between text-[11px] text-brand-600 font-medium group-hover:text-brand-800">
                       <span>View evidence</span>
+
                       <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </div>

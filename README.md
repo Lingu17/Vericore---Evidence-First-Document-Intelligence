@@ -113,3 +113,13 @@ Verify
 Answer
    ↓
 Inspect Evidence
+
+```
+
+## Policy comparison and evaluation
+
+The working six-step policy demonstration, implementation boundaries, security decisions and local/deployment commands are documented in [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md).
+
+Open the workspace and select **Load policy demonstration** to index the two sample versions through the real ingestion pipeline. Compare leave, inspect remote-work changes, test refusal, then run the measured evaluation suite.
+
+![Actual policy workspace](frontend/public/workspace-preview.png)

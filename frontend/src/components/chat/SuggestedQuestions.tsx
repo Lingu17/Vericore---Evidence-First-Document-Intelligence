@@ -21,13 +21,13 @@ export const SuggestedQuestions: React.FC<SuggestedQuestionsProps> = ({
         <span>Suggested questions from your documents</span>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-1">
         {questions.map((q, idx) => (
           <button
             key={idx}
             onClick={() => onSelect(q)}
             disabled={disabled}
-            className="text-left text-xs bg-white hover:bg-brand-50/70 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-brand-300 px-3 py-1.5 rounded-full shadow-subtle hover:shadow-card transition-all duration-200 hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed group flex items-center gap-1.5"
+            className="shrink-0 text-left text-xs bg-white hover:bg-brand-50/70 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-brand-300 px-3 py-1.5 rounded-full shadow-subtle hover:shadow-card transition-all duration-200 hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed group flex items-center gap-1.5"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-brand-500 group-hover:scale-125 transition-transform shrink-0" />
             <span className="truncate max-w-md">{q}</span>

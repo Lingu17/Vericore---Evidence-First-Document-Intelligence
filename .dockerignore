@@ -1,0 +1,14 @@
+.git
+frontend/node_modules
+frontend/dist
+backend/.venv
+**/__pycache__
+**/*.pyc
+**/chroma_db
+**/test_chroma
+**/demo_chroma
+**/.env
+**/.env.*
+!**/.env.example
+work
+outputs

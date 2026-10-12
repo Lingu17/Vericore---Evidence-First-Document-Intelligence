@@ -27,7 +27,7 @@ export const MainWorkspace: React.FC<MainWorkspaceProps> = ({
   onSelectEvidence,
 }) => {
   return (
-    <main className="flex-1 flex flex-col h-full bg-[#F8FAFC] overflow-hidden">
+    <main className="min-w-0 flex-1 flex flex-col h-full bg-[#F8FAFC] overflow-hidden">
       {/* Error alert if present */}
       {chatError && (
         <div className="mx-4 mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2 shadow-subtle">

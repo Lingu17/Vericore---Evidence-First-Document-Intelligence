@@ -4,7 +4,7 @@ Enforces strict typing and validation across ingestion, retrieval, and chat.
 """
 
 from enum import Enum
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, Field
 
 
@@ -101,8 +101,16 @@ class SourceEvidence(BaseModel):
 
 class ChatRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=1000)
+    document_ids: list[str] = Field(default_factory=list, max_length=2)
     conversation_history: list[ChatMessage] = Field(default_factory=list)
     document_id: Optional[str] = Field(None, description="Optional filter to single document")
+
+
+class VerifiedClaim(BaseModel):
+    text: str
+    status: Literal["supported", "partially_supported", "unsupported", "contradicted"]
+    source_ids: list[str] = Field(default_factory=list)
+    explanation: str
 
 
 class ChatResponse(BaseModel):
@@ -111,6 +119,10 @@ class ChatResponse(BaseModel):
     confidence: ConfidenceLevel
     sources: list[SourceEvidence] = Field(default_factory=list)
     suggested_followups: list[str] = Field(default_factory=list)
+    claims: list[VerifiedClaim] = Field(default_factory=list)
+    verification_method: str = "not_verified"
+    retrieval_chunk_ids: list[str] = Field(default_factory=list)
+    potential_conflicts: list[dict[str, str]] = Field(default_factory=list)
 
 
 class SuggestedQuestionsResponse(BaseModel):
