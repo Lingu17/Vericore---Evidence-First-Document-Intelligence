@@ -71,8 +71,10 @@ null rather than invented. Live Groq success requires a real server-side API key
   `/app`, all `/api/` routes and API documentation before source access. It is a
   single-owner workspace, not a multi-user SaaS authorization system. Use HTTPS.
 - The landing page and its public screenshot contain only demonstration fixtures.
-- Provider settings show masked server configuration status. API keys remain in
-  the server environment; no personal key storage or browser persistence was added.
+- Provider settings show masked server configuration status. An authenticated owner
+  can validate and temporarily activate a Groq key in server memory. Keys are cleared
+  from the form, never returned, and never persisted in browser storage or a database.
+  Restart restores environment configuration; a per-user credential vault was not added.
 - Bounded upload reads reject oversize files before parsing, and filenames are
   stripped of path components. Existing parser validation remains intact.
 - Uploaded instructions are untrusted evidence. No document code is executed.
@@ -167,3 +169,8 @@ and uses Secure, HttpOnly, SameSite=Strict cookies in production. Sessions expir
 eight hours, are revoked on sign-out and are invalidated by process restart.
 Cross-origin authenticated mutations are rejected. This remains a single-owner
 identity boundary, not per-user ownership or credential storage.
+
+Provider credentials can only be submitted when owner authentication is enabled.
+Connection tests validate the key and model with Groq without saving them. Activation
+resets the answer cache; Restore server configuration clears temporary credentials.
+Credential validation errors do not echo submitted input values or provider exceptions.

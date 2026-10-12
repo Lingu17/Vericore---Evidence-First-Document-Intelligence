@@ -12,6 +12,7 @@ from app.models.schemas import SourceEvidence, ChatRequest
 from app.api.chat import query_knowledge_base
 from app.services.vector_store import vector_store_service as store
 from app.services.comparison import compare_passages
+from app.services.llm import llm_service
 from app.api.documents import upload_document
 from fastapi import UploadFile
 from io import BytesIO
@@ -32,6 +33,45 @@ async def load_demo():
 class Pair(BaseModel):
     left_id: str = Field(min_length=1, max_length=100)
     right_id: str = Field(min_length=1, max_length=100)
+
+
+class ProviderCredentials(BaseModel):
+    api_key: str = Field(min_length=1, max_length=1000, repr=False)
+    model: str = Field(default=settings.GROQ_MODEL, min_length=1, max_length=100)
+
+
+def validated_provider(credentials):
+    if not settings.WORKSPACE_PASSWORD:
+        raise HTTPException(403, "Enable owner authentication before submitting provider credentials.")
+    try:
+        return llm_service.validate_connection(credentials.api_key, credentials.model)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(400, "Groq connection could not be validated. Check the key or retry later.") from None
+
+
+@router.post("/provider/test")
+def test_provider(credentials: ProviderCredentials):
+    validated_provider(credentials)
+    return {"status": "connected", "provider": "Groq", "model": credentials.model}
+
+
+@router.post("/provider")
+def configure_provider(credentials: ProviderCredentials):
+    client = validated_provider(credentials)
+    # This is one authenticated owner workspace, not a per-user credential vault.
+    # Runtime credentials are deliberately never written to disk or returned.
+    llm_service.activate_credentials(client, credentials.api_key, credentials.model)
+    return provider()
+
+
+@router.delete("/provider")
+def clear_runtime_provider():
+    if not settings.WORKSPACE_PASSWORD:
+        raise HTTPException(403, "Owner authentication is required.")
+    llm_service.restore_environment()
+    return provider()
 
 
 def passages(document_id):
@@ -59,11 +99,13 @@ def compare(pair: Pair):
 
 @router.get("/provider")
 def provider():
-    return {"provider": "Groq", "model": settings.GROQ_MODEL,
-            "configured": bool(settings.GROQ_API_KEY),
-            "mode": "local extraction" if settings.USE_MOCK_LLM or not settings.GROQ_API_KEY else "Groq",
+    return {"provider": "Groq",
+            "configured": bool(llm_service.api_key),
+            "model": llm_service.model,
+            "owner_configuration_enabled": bool(settings.WORKSPACE_PASSWORD),
+            "mode": "local extraction" if settings.USE_MOCK_LLM or not llm_service.api_key else "Groq",
             "timeout_seconds": settings.PROVIDER_TIMEOUT_SECONDS,
-            "credential_management": "Server environment only. Single-owner access; personal credential storage is not implemented."}
+            "credential_management": "Server environment or temporary owner configuration. Submitted keys stay in server memory and expire on restart. No per-user credential vault."}
 
 
 def run_directory():
@@ -99,8 +141,10 @@ async def evaluate(pair: Pair):
         retrieved_chunks = set(response.retrieval_chunk_ids)
         passed = (response.status == "not_found" and response.answer == "Information not available in the uploaded documents.") if unknown else (
             response.status == "answered" and all(value in response.answer for value in criteria)
-            and expected_docs.issubset(source_docs))
+            and expected_docs.issubset(source_docs) and bool(response.potential_conflicts))
         results.append({"question": question, "expected_criteria": criteria, "must_refuse": unknown,
+                        "must_flag_potential_conflict": not unknown,
+                        "potential_conflict_detected": bool(response.potential_conflicts),
                         "passed": passed, "response": response.model_dump(mode="json"),
                         "latency_ms": round((perf_counter()-start)*1000, 2),
                         "retrieval_precision": len(retrieved_chunks & expected_chunks)/len(retrieved_chunks) if retrieved_chunks and not unknown else None,
