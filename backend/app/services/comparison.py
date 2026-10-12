@@ -4,6 +4,15 @@ import re
 from app.models.schemas import SourceEvidence
 
 
+def changed_words(before, after):
+    # Preserve complete dates, amounts and policy values in the change indicators.
+    left = re.findall(r"\S+|\s+", before)
+    right = re.findall(r"\S+|\s+", after)
+    return [{"before": "".join(left[a:b]), "after": "".join(right[c:d])}
+            for tag, a, b, c, d in SequenceMatcher(None, left, right, autojunk=False).get_opcodes()
+            if tag != "equal"]
+
+
 def compare_passages(left: list[SourceEvidence], right: list[SourceEvidence]):
     remaining = list(right)
     changes = []
@@ -25,8 +34,7 @@ def compare_passages(left: list[SourceEvidence], right: list[SourceEvidence]):
         important = bool(re.search(r"\b(?:employees?|must|shall|may|required|days?|hours?|payments?|allowed)\b", before.evidence + " " + after.evidence, re.I)) and bool(re.search(r"[.!?]", before.evidence + after.evidence))
         changes.append({"kind": "modified", "before": before, "after": after,
                         "potential_conflict": important,
-                        "changes": [{"before": before.evidence[a:b], "after": after.evidence[c:d]}
-                                    for tag, a, b, c, d in SequenceMatcher(None, before.evidence, after.evidence).get_opcodes() if tag != "equal"],
+                        "changes": changed_words(before.evidence, after.evidence),
                         "explanation": "Wording changed. Inspect dates, scope, amounts and obligations in both sources; version changes do not establish a contradiction."})
     for after in remaining:
         changes.append({"kind": "added", "before": None, "after": after,
