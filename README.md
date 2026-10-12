@@ -8,6 +8,18 @@ Ask questions across documents, inspect the original passages behind each claim,
 
 ![Vericore workspace with answers and original source passages](https://raw.githubusercontent.com/Lingu17/Vericore---Evidence-First-Document-Intelligence/codex/evidence-policy-demo/frontend/public/workspace-preview.png)
 
+## Public-account upgrade
+
+The current upgrade adds **email/password registration → personal Groq API-key setup → isolated workspace**. Google sign-in is implemented and becomes available after the deployment's OAuth client credentials are configured. See the complete [Google and account setup guide](https://github.com/Lingu17/Vericore---Evidence-First-Document-Intelligence/blob/codex/evidence-policy-demo/docs/GOOGLE_SIGN_IN.md).
+
+Enable `PUBLIC_ACCOUNTS=true` for this flow. Configure `PUBLIC_BASE_URL`, `GOOGLE_CLIENT_ID`, and `GOOGLE_CLIENT_SECRET` for Google. Each account has a separate Chroma collection, document registry, evaluation directory, Groq client, and answer cache. Existing owner documents are not exposed to public users. Public users must connect their own validated Groq key before private workspace APIs become available.
+
+Account passwords use salted scrypt hashes. SQLite stores hashed eight-hour session tokens; public-session cookies are HttpOnly, SameSite=Lax, and Secure in production. Google uses one-use cookie-bound state and PKCE. Logout revokes the session. Groq keys stay in account-specific server memory and require reconnection after restart; they are not persisted or returned. Accounts and documents on Render Free remain ephemeral. Email verification, password recovery, and account linking are not implemented.
+
+The public-account update passed **53 backend tests with the ONNX engine**, including cross-account document/deletion/evaluation/key isolation and mocked Google callback/replay tests. The frontend production build passed. Real Google sign-in still needs OAuth credentials and a real account test. The earlier hosted evaluation table below records the previous extractive run.
+
+The owner-only setup and authentication sections below describe compatibility mode (`PUBLIC_ACCOUNTS=false`), which remains available for local use and the evaluation CLI. On the public deployment, create your own account and connect your Groq key; the owner password is not used for public accounts.
+
 ## Contents
 
 - [End-to-end demonstration](#end-to-end-demonstration)
