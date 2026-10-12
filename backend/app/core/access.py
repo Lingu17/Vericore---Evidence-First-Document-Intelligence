@@ -27,8 +27,7 @@ async def workspace_access(request, call_next):
         if not authorized:
             if request.url.path == "/app":
                 return RedirectResponse("/login", status_code=303)
-            return JSONResponse({"detail": "Workspace sign-in required."}, status_code=401,
-                                headers={"WWW-Authenticate": 'Basic realm="Vericore workspace", charset="UTF-8"'})
+            return JSONResponse({"detail": "Workspace sign-in required."}, status_code=401)
     if request.url.path.startswith("/api/") and request.method in {"POST", "DELETE"}:
         # Local process protection. A production proxy should enforce distributed limits.
         key = request.client.host if request.client else "unknown"
