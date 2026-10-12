@@ -124,6 +124,15 @@ export function App() {
         </button>
         <div className="flex-1" />
         <button
+          onClick={async () => {
+            await fetch("/api/auth/logout", { method: "POST" });
+            window.location.assign("/login");
+          }}
+          className="text-xs text-slate-500 px-3 py-2"
+        >
+          Sign out
+        </button>
+        <button
           onClick={() => refreshDocuments()}
           className="text-xs text-slate-600 px-3 py-2 border rounded-lg"
         >

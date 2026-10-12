@@ -16,6 +16,6 @@ async def health_check():
         status="healthy",
         version="1.0.0",
         embedding_model=settings.EMBEDDING_MODEL,
-        llm_provider="Groq" if settings.GROQ_API_KEY else "Local Grounded Engine",
+        llm_provider="Groq" if settings.GROQ_API_KEY and not settings.USE_MOCK_LLM else "Local Grounded Engine",
         vector_store_documents=doc_count
     )

@@ -33,3 +33,24 @@ def test_size_limit_before_parsing(monkeypatch):
     monkeypatch.setattr(settings, "MAX_FILE_SIZE_MB", 0)
     response = TestClient(app).post("/api/documents/upload", files={"file": ("test.txt", b"oversized", "text/plain")})
     assert response.status_code == 413
+
+
+def test_owner_session_is_private_revocable_and_rejects_cross_origin(monkeypatch):
+    from app.core import access
+    access._requests.clear()
+    monkeypatch.setattr(settings, "WORKSPACE_PASSWORD", "test-password")
+    monkeypatch.setattr(settings, "ENV", "production")
+    client = TestClient(app, base_url="https://testserver")
+    assert client.get("/api/auth/status").json()["required"]
+    bad = client.post("/api/auth/login", json={"username": "owner", "password": "bad"})
+    assert bad.status_code == 401
+    login = client.post("/api/auth/login", json={"username": "owner", "password": "test-password"})
+    assert login.status_code == 200
+    assert "HttpOnly" in login.headers["set-cookie"]
+    assert "Secure" in login.headers["set-cookie"]
+    assert "test-password" not in login.text
+    assert client.get("/api/documents").status_code == 200
+    assert client.post("/api/chat", json={"question": "Leave?"}, headers={"Origin": "https://evil.example"}).status_code == 403
+    assert client.post("/api/auth/logout").status_code == 200
+    assert client.get("/api/documents").status_code == 401
+    access._requests.clear()

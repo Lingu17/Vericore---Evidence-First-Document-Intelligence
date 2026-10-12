@@ -4,7 +4,8 @@ import secrets
 from collections import deque
 from threading import Lock
 from time import monotonic
-from fastapi.responses import JSONResponse
+from urllib.parse import urlsplit
+from fastapi.responses import JSONResponse, RedirectResponse
 from app.core.config import settings
 
 _requests = {}
@@ -12,7 +13,9 @@ _lock = Lock()
 
 
 async def workspace_access(request, call_next):
-    if request.url.path.startswith(("/api/", "/app", "/docs", "/openapi")) and settings.WORKSPACE_PASSWORD:
+    from app.api.auth import COOKIE, session_valid
+    public_auth = request.url.path in {"/api/auth/login", "/api/auth/status"}
+    if request.url.path.startswith(("/api/", "/app", "/docs", "/openapi")) and settings.WORKSPACE_PASSWORD and not public_auth:
         authorization = request.headers.get("authorization", "")
         try:
             scheme, encoded = authorization.split(" ", 1)
@@ -20,7 +23,10 @@ async def workspace_access(request, call_next):
             authorized = scheme.lower() == "basic" and secrets.compare_digest(username.encode(), settings.WORKSPACE_USERNAME.encode()) and secrets.compare_digest(password.encode(), settings.WORKSPACE_PASSWORD.encode())
         except (ValueError, UnicodeError):
             authorized = False
+        authorized = authorized or session_valid(request.cookies.get(COOKIE))
         if not authorized:
+            if request.url.path == "/app":
+                return RedirectResponse("/login", status_code=303)
             return JSONResponse({"detail": "Workspace sign-in required."}, status_code=401,
                                 headers={"WWW-Authenticate": 'Basic realm="Vericore workspace", charset="UTF-8"'})
     if request.url.path.startswith("/api/") and request.method in {"POST", "DELETE"}:
@@ -38,6 +44,12 @@ async def workspace_access(request, call_next):
                 return JSONResponse({"detail": "Too many requests. Retry in a minute."}, status_code=429,
                                     headers={"Retry-After": "60"})
             times.append(now)
+    if request.method in {"POST", "DELETE"} and request.cookies.get(COOKIE):
+        # Prevent browser cross-origin submissions using an authenticated session.
+        origin = request.headers.get("origin")
+        same_host = origin and urlsplit(origin).netloc == request.headers.get("host")
+        if origin and origin not in settings.CORS_ORIGINS and not same_host:
+            return JSONResponse({"detail": "Cross-origin request rejected."}, status_code=403)
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "same-origin"

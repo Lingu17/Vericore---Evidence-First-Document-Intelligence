@@ -202,11 +202,13 @@ class RetrieverService:
         sources: list[SourceEvidence] = []
         for res in selected_candidates:
             meta = res["metadata"]
+            if not meta.get("document_id") or not meta.get("filename") or not isinstance(meta.get("page"), int) or meta["page"] < 1:
+                continue
             sources.append(
                 SourceEvidence(
                     document_id=meta.get("document_id", ""),
-                    filename=meta.get("filename", "Document"),
-                    page=int(meta.get("page", 1)),
+                    filename=meta["filename"],
+                    page=meta["page"],
                     section=meta.get("section", "General"),
                     evidence=res["text"],
                     chunk_id=res["chunk_id"],
