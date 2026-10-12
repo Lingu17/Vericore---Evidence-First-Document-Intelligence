@@ -67,7 +67,7 @@ null rather than invented. Live Groq success requires a real server-side API key
 
 ## Security and configuration
 
-- Production startup requires `WORKSPACE_PASSWORD`. Basic authentication protects
+- Production startup requires `WORKSPACE_PASSWORD`. Short-lived HttpOnly owner sessions (and Basic authentication for CLI clients) protect
   `/app`, all `/api/` routes and API documentation before source access. It is a
   single-owner workspace, not a multi-user SaaS authorization system. Use HTTPS.
 - The landing page and its public screenshot contain only demonstration fixtures.
@@ -144,7 +144,7 @@ dependencies. No fabricated frontend unit-test or lint result is claimed.
 `Dockerfile` builds the existing frontend and serves it with FastAPI on one origin.
 The image bakes the model assets, uses a non-root user and one Uvicorn worker.
 `render.yaml` describes a free Render web service with a generated owner password.
-Find that password in Render's private environment settings; it is not redisplayed
+Sign in at `/login` with username `owner`. Find that password in Render's private environment settings; it is not redisplayed
 in Vericore. Keep `GROQ_API_KEY` optional if evaluating local extraction only.
 
 The free host's filesystem is ephemeral: uploaded documents and evaluation runs
@@ -161,3 +161,9 @@ must verify the container before deployment is considered successful.
 3. A larger independent evaluation corpus, semantic claim verification with
    validated quotation spans, and scope-aware contradiction grading.
 4. Background ingestion and distributed rate limits for concurrent workloads.
+
+The owner sign-in form sends credentials only to the server, clears its password field,
+and uses Secure, HttpOnly, SameSite=Strict cookies in production. Sessions expire in
+eight hours, are revoked on sign-out and are invalidated by process restart.
+Cross-origin authenticated mutations are rejected. This remains a single-owner
+identity boundary, not per-user ownership or credential storage.

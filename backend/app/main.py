@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from app.core.access import workspace_access
-from app.api import chat, documents, health, lab
+from app.api import chat, documents, health, lab, auth
 from app.core.config import settings
 from app.core.logging import logger
 from app.services.embeddings import embedding_service
@@ -77,6 +77,7 @@ app.include_router(health.router)
 app.include_router(documents.router)
 app.include_router(chat.router)
 app.include_router(lab.router)
+app.include_router(auth.router)
 
 
 @app.get("/")
@@ -98,6 +99,10 @@ if static_path.is_dir():
 
     @app.get("/app")
     async def workspace_page():
+        return FileResponse(static_path / "index.html")
+
+    @app.get("/login")
+    async def login_page():
         return FileResponse(static_path / "index.html")
 
     @app.get("/{asset_name}", include_in_schema=False)
