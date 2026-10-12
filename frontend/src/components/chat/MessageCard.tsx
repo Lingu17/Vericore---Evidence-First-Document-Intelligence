@@ -131,9 +131,9 @@ export const MessageCard: React.FC<MessageCardProps> = ({
               </div>
             </div>
           ))}
-          {message.claims?.some((c) => c.status === "unsupported") && (
+          {message.claims?.some((c) => c.status !== "supported") && (
             <p className="text-xs text-amber-800">
-              Unsupported statements were withheld from this answer.
+              Statements without full passage support were withheld from this answer.
             </p>
           )}
           {/* Source Attribution list */}

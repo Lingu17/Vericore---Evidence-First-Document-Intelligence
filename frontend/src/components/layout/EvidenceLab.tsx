@@ -37,6 +37,7 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
       : undefined,
   );
   if (!res.ok) {
+    if (res.status === 401) window.location.assign("/login");
     const error = await res.json();
     throw new Error(
       typeof error.detail === "string" ? error.detail : "Request failed.",
@@ -63,9 +64,13 @@ export function EvidenceLab({
     configured: boolean;
     mode: string;
     credential_management: string;
+    owner_configuration_enabled: boolean;
   } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [model, setModel] = useState("openai/gpt-oss-20b");
+  const [connection, setConnection] = useState("");
   useEffect(() => {
     request<{ runs: Run[] }>("evaluations")
       .then((r) => setRuns(r.runs))
@@ -76,6 +81,40 @@ export function EvidenceLab({
   }, []);
   const metric = (value: number | null | undefined) =>
     value == null ? "N/A" : `${Math.round(value * 100)}%`;
+  async function configure(action: "test" | "activate" | "clear") {
+    setBusy(true);
+    setError("");
+    setConnection("");
+    try {
+      if (action === "clear") {
+        const response = await fetch("/api/provider", { method: "DELETE" });
+        if (!response.ok)
+          throw new Error("Could not restore server configuration.");
+        setProvider(await response.json());
+        setConnection("Server environment configuration restored.");
+      } else if (action === "test") {
+        await request("provider/test", { api_key: apiKey, model });
+        setConnection(
+          "Groq credential and model validated. Key was not saved.",
+        );
+      } else {
+        setProvider(
+          await request<typeof provider>("provider", {
+            api_key: apiKey,
+            model,
+          }),
+        );
+        setConnection(
+          "Groq activated for this owner workspace until the server restarts.",
+        );
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Connection failed.");
+    } finally {
+      setApiKey("");
+      setBusy(false);
+    }
+  }
   async function run() {
     setBusy(true);
     setError("");
@@ -142,6 +181,65 @@ export function EvidenceLab({
             </>
           ) : (
             <p>Loading configuration…</p>
+          )}
+          {connection && (
+            <p role="status" className="text-sm text-emerald-700">
+              {connection}
+            </p>
+          )}
+          {provider?.owner_configuration_enabled && (
+            <div className="border-t border-slate-200 pt-4 space-y-3">
+              <h3 className="font-semibold text-sm">
+                Temporary owner configuration
+              </h3>
+              <p className="text-xs text-slate-500">
+                Keys are validated with Groq, kept only in authenticated server
+                memory, and cleared from this form after submission. They are
+                never returned or stored in your browser. Restarting the service
+                restores its environment configuration.
+              </p>
+              <label className="block text-sm">
+                Groq model
+                <input
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  className="block w-full max-w-md border border-slate-200 rounded-lg p-2 mt-1"
+                />
+              </label>
+              <label className="block text-sm">
+                Groq API key
+                <input
+                  type="password"
+                  autoComplete="off"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="block w-full max-w-md border border-slate-200 rounded-lg p-2 mt-1"
+                />
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  disabled={busy || !apiKey || !model}
+                  onClick={() => configure("test")}
+                  className="border rounded-lg px-3 py-2 text-sm disabled:opacity-40"
+                >
+                  Test connection
+                </button>
+                <button
+                  disabled={busy || !apiKey || !model}
+                  onClick={() => configure("activate")}
+                  className="bg-slate-900 text-white rounded-lg px-3 py-2 text-sm disabled:opacity-40"
+                >
+                  Validate & activate
+                </button>
+                <button
+                  disabled={busy}
+                  onClick={() => configure("clear")}
+                  className="border rounded-lg px-3 py-2 text-sm disabled:opacity-40"
+                >
+                  Restore server configuration
+                </button>
+              </div>
+            </div>
           )}
         </section>
       ) : (

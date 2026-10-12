@@ -193,6 +193,22 @@ class LLMProvider(ABC):
 
 
 class GroqProvider(LLMProvider):
+    @staticmethod
+    def validate_connection(api_key: str, model: str):
+        client = Groq(api_key=api_key, timeout=settings.PROVIDER_TIMEOUT_SECONDS, max_retries=0)
+        models = client.models.list()
+        if model not in {item.id for item in models.data}:
+            raise ValueError("Selected Groq model is unavailable.")
+        return client
+
+    def activate_credentials(self, client, api_key: str, model: str):
+        self.client, self.api_key, self.model = client, api_key, model
+        self._answer_cache.clear()
+
+    def restore_environment(self):
+        restored = GroqProvider()
+        self.activate_credentials(restored.client, restored.api_key, restored.model)
+
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or settings.GROQ_API_KEY
         self.model = model or settings.GROQ_MODEL

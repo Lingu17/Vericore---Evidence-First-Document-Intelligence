@@ -60,3 +60,57 @@ def test_empty_provider_response_and_schema():
     with pytest.raises(ValueError):
         ProviderOutput.model_validate({"status": "other", "answer": "something"})
     assert generate_cache_key("q", "doc1", ["a"]) != generate_cache_key("q", "doc2", ["a"])
+
+
+def test_owner_key_validation_activation_and_clear(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.api import lab
+    monkeypatch.setattr(settings, "WORKSPACE_PASSWORD", "owner-test-password")
+    fake = SimpleNamespace(models=SimpleNamespace(list=lambda: SimpleNamespace(data=[SimpleNamespace(id="test-model")])))
+    import app.services.llm as llm_module
+    monkeypatch.setattr(llm_module, "Groq", lambda **kwargs: fake)
+    for attribute in ("api_key", "model", "client", "_answer_cache"):
+        monkeypatch.setattr(lab.llm_service, attribute, getattr(lab.llm_service, attribute))
+    client = TestClient(app)
+    payload = {"api_key": "test-secret-never-return", "model": "test-model"}
+    assert client.post("/api/provider", json=payload).status_code == 401
+    auth = ("owner", "owner-test-password")
+    tested = client.post("/api/provider/test", json=payload, auth=auth)
+    assert tested.status_code == 200
+    assert "test-secret-never-return" not in tested.text
+    activated = client.post("/api/provider", json=payload, auth=auth)
+    assert activated.status_code == 200
+    assert activated.json()["configured"]
+    assert "test-secret-never-return" not in activated.text
+    assert lab.llm_service.api_key == "test-secret-never-return"
+    assert client.delete("/api/provider", auth=auth).status_code == 200
+    assert lab.llm_service.api_key == settings.GROQ_API_KEY
+
+
+def test_key_errors_do_not_echo_secrets(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.api import lab
+    monkeypatch.setattr(settings, "WORKSPACE_PASSWORD", "owner-test-password")
+    def fail(**kwargs):
+        raise PermissionError("sensitive-key-in-provider-exception")
+    import app.services.llm as llm_module
+    monkeypatch.setattr(llm_module, "Groq", fail)
+    client = TestClient(app)
+    auth = ("owner", "owner-test-password")
+    response = client.post("/api/provider/test", json={"api_key": "sensitive-key-in-provider-exception"}, auth=auth)
+    assert response.status_code == 400
+    assert "sensitive-key" not in response.text
+    too_long = "SECRET" * 200
+    response = client.post("/api/provider", json={"api_key": too_long}, auth=auth)
+    assert response.status_code == 422
+    assert too_long not in response.text
+
+
+def test_key_entry_requires_owner_foundation(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    monkeypatch.setattr(settings, "WORKSPACE_PASSWORD", "")
+    response = TestClient(app).post("/api/provider/test", json={"api_key": "test-key"})
+    assert response.status_code == 403
