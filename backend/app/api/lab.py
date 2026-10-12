@@ -63,7 +63,7 @@ def provider():
             "configured": bool(settings.GROQ_API_KEY),
             "mode": "local extraction" if settings.USE_MOCK_LLM or not settings.GROQ_API_KEY else "Groq",
             "timeout_seconds": settings.PROVIDER_TIMEOUT_SECONDS,
-            "credential_management": "Server environment only. This workspace has no user authentication."}
+            "credential_management": "Server environment only. Single-owner access; personal credential storage is not implemented."}
 
 
 def run_directory():
