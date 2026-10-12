@@ -54,6 +54,7 @@ def test_comparison():
     changes = compare_passages([source()], [source("Employees receive 25 annual leave days per year.")])
     assert changes[0]["kind"] == "modified"
     assert changes[0]["potential_conflict"]
+    assert changes[0]["changes"] == [{"before": "20", "after": "25"}]
     assert compare_passages([source()], [])[0]["kind"] == "removed"
     assert compare_passages([], [source()])[0]["kind"] == "added"
     unrelated = compare_passages([source()], [source("Satellite navigation uses orbital positioning systems.")])
