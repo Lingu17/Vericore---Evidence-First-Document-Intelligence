@@ -16,6 +16,7 @@ from app.services.llm import llm_service
 from app.api.documents import upload_document
 from fastapi import UploadFile
 from io import BytesIO
+from app.core.tenant import current_user
 
 router = APIRouter(prefix="/api", tags=["Evidence Lab"])
 
@@ -41,7 +42,7 @@ class ProviderCredentials(BaseModel):
 
 
 def validated_provider(credentials):
-    if not settings.WORKSPACE_PASSWORD:
+    if not settings.WORKSPACE_PASSWORD and not current_user.get():
         raise HTTPException(403, "Enable owner authentication before submitting provider credentials.")
     try:
         return llm_service.validate_connection(credentials.api_key, credentials.model)
@@ -68,7 +69,7 @@ def configure_provider(credentials: ProviderCredentials):
 
 @router.delete("/provider")
 def clear_runtime_provider():
-    if not settings.WORKSPACE_PASSWORD:
+    if not settings.WORKSPACE_PASSWORD and not current_user.get():
         raise HTTPException(403, "Owner authentication is required.")
     llm_service.restore_environment()
     return provider()
@@ -102,14 +103,17 @@ def provider():
     return {"provider": "Groq",
             "configured": bool(llm_service.api_key),
             "model": llm_service.model,
-            "owner_configuration_enabled": bool(settings.WORKSPACE_PASSWORD),
+            "owner_configuration_enabled": bool(settings.WORKSPACE_PASSWORD) or bool(current_user.get()),
             "mode": "local extraction" if settings.USE_MOCK_LLM or not llm_service.api_key else "Groq",
             "timeout_seconds": settings.PROVIDER_TIMEOUT_SECONDS,
-            "credential_management": "Server environment or temporary owner configuration. Submitted keys stay in server memory and expire on restart. No per-user credential vault."}
+            "credential_management": "Your key is isolated to your account, held in server memory, and expires on restart. It is never returned or stored in the browser." if current_user.get() else "Temporary owner configuration; keys expire on restart."}
 
 
 def run_directory():
     path = Path(settings.CHROMA_PATH) / "evaluation_runs"
+    user = current_user.get()
+    if user:
+        path = Path(settings.CHROMA_PATH) / "workspaces" / user["id"] / "evaluation_runs"
     path.mkdir(parents=True, exist_ok=True)
     return path
 

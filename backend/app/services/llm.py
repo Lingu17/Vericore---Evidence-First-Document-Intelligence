@@ -206,11 +206,12 @@ class GroqProvider(LLMProvider):
         self._answer_cache.clear()
 
     def restore_environment(self):
-        restored = GroqProvider()
+        from app.core.tenant import current_user
+        restored = GroqProvider(api_key="" if current_user.get() else None)
         self.activate_credentials(restored.client, restored.api_key, restored.model)
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
-        self.api_key = api_key or settings.GROQ_API_KEY
+        self.api_key = settings.GROQ_API_KEY if api_key is None else api_key
         self.model = model or settings.GROQ_MODEL
         self.client: Optional[Groq] = None
         self._answer_cache: dict[str, ChatResponse] = {}
@@ -410,4 +411,5 @@ class GroqProvider(LLMProvider):
             return res
 
 
-llm_service: LLMProvider = GroqProvider()
+from app.core.tenant import ScopedService
+llm_service = ScopedService(GroqProvider(), lambda user_id: GroqProvider(api_key=""), "provider")

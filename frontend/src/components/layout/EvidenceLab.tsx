@@ -88,10 +88,9 @@ export function EvidenceLab({
     try {
       if (action === "clear") {
         const response = await fetch("/api/provider", { method: "DELETE" });
-        if (!response.ok)
-          throw new Error("Could not restore server configuration.");
+        if (!response.ok) throw new Error("Could not disconnect the API key.");
         setProvider(await response.json());
-        setConnection("Server environment configuration restored.");
+        setConnection("API key disconnected.");
       } else if (action === "test") {
         await request("provider/test", { api_key: apiKey, model });
         setConnection(
@@ -105,7 +104,7 @@ export function EvidenceLab({
           }),
         );
         setConnection(
-          "Groq activated for this owner workspace until the server restarts.",
+          "Groq activated for your workspace until the server restarts.",
         );
       }
     } catch (e) {
@@ -158,7 +157,7 @@ export function EvidenceLab({
       )}
       {tab === "provider" ? (
         <section className="p-5 bg-white border rounded-xl space-y-3">
-          <h2 className="font-semibold">Server provider configuration</h2>
+          <h2 className="font-semibold">Personal provider configuration</h2>
           {provider ? (
             <>
               <p>
@@ -166,10 +165,8 @@ export function EvidenceLab({
               </p>
               <p>
                 Credential:{" "}
-                {provider.configured
-                  ? "Configured on server"
-                  : "Not configured"}{" "}
-                · Mode: {provider.mode}
+                {provider.configured ? "Connected" : "Not configured"} · Mode:{" "}
+                {provider.mode}
               </p>
               <p className="text-sm text-slate-500">
                 {provider.credential_management}
@@ -189,14 +186,12 @@ export function EvidenceLab({
           )}
           {provider?.owner_configuration_enabled && (
             <div className="border-t border-slate-200 pt-4 space-y-3">
-              <h3 className="font-semibold text-sm">
-                Temporary owner configuration
-              </h3>
+              <h3 className="font-semibold text-sm">Your Groq connection</h3>
               <p className="text-xs text-slate-500">
                 Keys are validated with Groq, kept only in authenticated server
                 memory, and cleared from this form after submission. They are
                 never returned or stored in your browser. Restarting the service
-                restores its environment configuration.
+                clears temporary account keys.
               </p>
               <label className="block text-sm">
                 Groq model
@@ -236,7 +231,7 @@ export function EvidenceLab({
                   onClick={() => configure("clear")}
                   className="border rounded-lg px-3 py-2 text-sm disabled:opacity-40"
                 >
-                  Restore server configuration
+                  Disconnect API key
                 </button>
               </div>
             </div>
