@@ -10,6 +10,7 @@ const API_BASE = '/api';
 
 class ApiService {
   private async handleResponse<T>(response: Response): Promise<T> {
+    if (response.status === 428) { window.location.assign("/setup"); throw new Error("Connect your API key to continue."); }
     if (response.status === 401) { window.location.assign("/login"); throw new Error("Please sign in to your workspace."); }
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;

@@ -24,18 +24,20 @@ class VectorStoreService:
             cls._instance._initialize()
         return cls._instance
 
-    def _initialize(self) -> None:
+    def _initialize(self, user_id=None) -> None:
         """Initializes ChromaDB persistent client and document metadata catalog."""
         self.chroma_path = Path(settings.CHROMA_PATH)
         self.chroma_path.mkdir(parents=True, exist_ok=True)
-        self.metadata_file = self.chroma_path / "documents_registry.json"
+        workspace = self.chroma_path / "workspaces" / user_id if user_id else self.chroma_path
+        workspace.mkdir(parents=True, exist_ok=True)
+        self.metadata_file = workspace / "documents_registry.json"
 
         logger.info(f"Initializing persistent ChromaDB at '{self.chroma_path}'...")
         self.client = chromadb.PersistentClient(
             path=str(self.chroma_path),
             settings=ChromaSettings(anonymized_telemetry=False)
         )
-        self.collection_name = "docupilot_knowledge_base"
+        self.collection_name = "workspace_" + user_id if user_id else "docupilot_knowledge_base"
         self.collection = self.client.get_or_create_collection(
             name=self.collection_name,
             metadata={"hnsw:space": "cosine"}
@@ -220,4 +222,11 @@ class VectorStoreService:
 
 
 # Global singleton access
-vector_store_service = VectorStoreService()
+def user_store(user_id):
+    instance = object.__new__(VectorStoreService)
+    instance._initialize(user_id)
+    return instance
+
+
+from app.core.tenant import ScopedService
+vector_store_service = ScopedService(VectorStoreService(), user_store, "store")

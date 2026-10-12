@@ -21,7 +21,7 @@ from app.services.vector_store import vector_store_service
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initializes singletons and warms up local embedding model on startup."""
-    if settings.ENV == "production" and not settings.WORKSPACE_PASSWORD:
+    if settings.ENV == "production" and not settings.WORKSPACE_PASSWORD and not settings.PUBLIC_ACCOUNTS:
         raise RuntimeError("Production requires WORKSPACE_PASSWORD for owner access.")
     logger.info("=" * 60)
     logger.info("DOCUPILOT: Evidence-First Document Intelligence")
@@ -111,6 +111,7 @@ if static_path.is_dir():
         return FileResponse(static_path / "index.html")
 
     @app.get("/login")
+    @app.get("/setup")
     async def login_page():
         return FileResponse(static_path / "index.html")
 

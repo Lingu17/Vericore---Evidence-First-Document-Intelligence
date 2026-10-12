@@ -68,6 +68,10 @@ class Settings(BaseSettings):
 
     # Server Settings
     WORKSPACE_USERNAME: str = "owner"
+    PUBLIC_ACCOUNTS: bool = False
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    PUBLIC_BASE_URL: str = "http://127.0.0.1:8000"
     WORKSPACE_PASSWORD: str = ""
     REQUESTS_PER_MINUTE: int = 60
     ENV: str = "development"

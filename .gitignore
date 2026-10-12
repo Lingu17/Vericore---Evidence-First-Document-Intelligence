@@ -12,3 +12,5 @@ frontend/dist/
 evaluation-result.json
 **/test_onnx_chroma/
 backend/static/
+**/test_accounts_chroma/
+**/accounts.sqlite3

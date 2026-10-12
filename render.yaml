@@ -7,6 +7,14 @@ services:
     envVars:
       - key: ENV
         value: production
+      - key: PUBLIC_ACCOUNTS
+        value: "true"
+      - key: PUBLIC_BASE_URL
+        value: https://vericore-evidence.onrender.com
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
       - key: CHROMA_PATH
         value: /data/chroma
       - key: USE_MOCK_LLM
