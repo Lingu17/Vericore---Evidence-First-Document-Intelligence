@@ -1,6 +1,13 @@
-export type ConfidenceLevel = 'high' | 'medium' | 'low';
-export type ChatStatus = 'answered' | 'not_found';
-export type DocumentStatus = 'indexed' | 'processing' | 'failed' | 'already_exists';
+export interface VerifiedClaim {
+  text: string;
+  status: string;
+  source_ids: string[];
+  explanation: string;
+}
+export type ConfidenceLevel = "high" | "medium" | "low";
+export type ChatStatus = "answered" | "not_found";
+export type DocumentStatus =
+  "indexed" | "processing" | "failed" | "already_exists";
 
 export interface SourceEvidence {
   document_id: string;
@@ -40,8 +47,15 @@ export interface DocumentUploadResponse {
 
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
+  claims?: VerifiedClaim[];
+  potential_conflicts?: {
+    left_chunk_id: string;
+    right_chunk_id: string;
+    explanation: string;
+  }[];
+  verification_method?: string;
   status?: ChatStatus;
   confidence?: ConfidenceLevel;
   sources?: SourceEvidence[];
@@ -56,6 +70,13 @@ export interface ChatRequest {
 }
 
 export interface ChatResponse {
+  claims: VerifiedClaim[];
+  potential_conflicts: {
+    left_chunk_id: string;
+    right_chunk_id: string;
+    explanation: string;
+  }[];
+  verification_method: string;
   status: ChatStatus;
   answer: string;
   confidence: ConfidenceLevel;

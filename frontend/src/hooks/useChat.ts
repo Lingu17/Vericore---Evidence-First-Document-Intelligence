@@ -1,13 +1,15 @@
-import { useState } from 'react';
-import { ChatMessage, SourceEvidence } from '../types';
-import { api } from '../services/api';
+import { useState } from "react";
+import { ChatMessage, SourceEvidence } from "../types";
+import { api } from "../services/api";
 
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isQuerying, setIsQuerying] = useState<boolean>(false);
   const [queryStep, setQueryStep] = useState<string | null>(null);
-  const [selectedEvidence, setSelectedEvidence] = useState<SourceEvidence | null>(null);
-  const [isEvidenceDrawerOpen, setIsEvidenceDrawerOpen] = useState<boolean>(false);
+  const [selectedEvidence, setSelectedEvidence] =
+    useState<SourceEvidence | null>(null);
+  const [isEvidenceDrawerOpen, setIsEvidenceDrawerOpen] =
+    useState<boolean>(false);
   const [chatError, setChatError] = useState<string | null>(null);
 
   const openEvidence = (evidence: SourceEvidence) => {
@@ -20,7 +22,10 @@ export function useChat() {
     setIsEvidenceDrawerOpen(false);
   };
 
-  const sendQuery = async (question: string, documentIdFilter?: string | null) => {
+  const sendQuery = async (
+    question: string,
+    documentIdFilter?: string | null,
+  ) => {
     const trimmed = question.trim();
     if (!trimmed || isQuerying) return;
 
@@ -28,14 +33,14 @@ export function useChat() {
     const userMsgId = `usr_${Date.now()}`;
     const userMsg: ChatMessage = {
       id: userMsgId,
-      role: 'user',
+      role: "user",
       content: trimmed,
       timestamp: new Date().toISOString(),
     };
 
     setMessages((prev) => [...prev, userMsg]);
     setIsQuerying(true);
-    setQueryStep('Searching semantic vector index...');
+    setQueryStep("Searching semantic vector index...");
 
     try {
       // Create compact history (last 4 messages)
@@ -45,7 +50,7 @@ export function useChat() {
       }));
 
       setTimeout(() => {
-        setQueryStep('Retrieving and verifying grounded evidence...');
+        setQueryStep("Retrieving and verifying grounded evidence...");
       }, 300);
 
       const response = await api.sendQuery({
@@ -54,15 +59,18 @@ export function useChat() {
         document_id: documentIdFilter,
       });
 
-      setQueryStep('Generating grounded answer...');
+      setQueryStep("Generating grounded answer...");
 
       const assistantMsg: ChatMessage = {
         id: `ast_${Date.now()}`,
-        role: 'assistant',
+        role: "assistant",
         content: response.answer,
         status: response.status,
         confidence: response.confidence,
         sources: response.sources,
+        claims: response.claims,
+        potential_conflicts: response.potential_conflicts,
+        verification_method: response.verification_method,
         suggested_followups: response.suggested_followups,
         timestamp: new Date().toISOString(),
       };
@@ -70,7 +78,7 @@ export function useChat() {
       setMessages((prev) => [...prev, assistantMsg]);
       setSelectedEvidence(null);
     } catch (err: any) {
-      setChatError(err.message || 'Failed to generate answer from documents.');
+      setChatError(err.message || "Failed to generate answer from documents.");
     } finally {
       setIsQuerying(false);
       setQueryStep(null);

@@ -8,7 +8,8 @@ from abc import ABC, abstractmethod
 import hashlib
 import json
 import re
-from typing import Any, Optional
+from typing import Any, Optional, Literal
+from pydantic import BaseModel, Field
 from groq import Groq
 from app.core.config import settings
 from app.core.logging import logger
@@ -173,6 +174,12 @@ def generate_cache_key(
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
+class ProviderOutput(BaseModel):
+    status: Literal["answered", "not_found"]
+    answer: str = Field(min_length=1, max_length=12000)
+    source_ids: list[str] = Field(default_factory=list, max_length=20)
+
+
 class LLMProvider(ABC):
     @abstractmethod
     def generate_answer(
@@ -186,6 +193,22 @@ class LLMProvider(ABC):
 
 
 class GroqProvider(LLMProvider):
+    @staticmethod
+    def validate_connection(api_key: str, model: str):
+        client = Groq(api_key=api_key, timeout=settings.PROVIDER_TIMEOUT_SECONDS, max_retries=0)
+        models = client.models.list()
+        if model not in {item.id for item in models.data}:
+            raise ValueError("Selected Groq model is unavailable.")
+        return client
+
+    def activate_credentials(self, client, api_key: str, model: str):
+        self.client, self.api_key, self.model = client, api_key, model
+        self._answer_cache.clear()
+
+    def restore_environment(self):
+        restored = GroqProvider()
+        self.activate_credentials(restored.client, restored.api_key, restored.model)
+
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or settings.GROQ_API_KEY
         self.model = model or settings.GROQ_MODEL
@@ -194,10 +217,10 @@ class GroqProvider(LLMProvider):
 
         if self.api_key and not settings.USE_MOCK_LLM:
             try:
-                self.client = Groq(api_key=self.api_key)
+                self.client = Groq(api_key=self.api_key, timeout=settings.PROVIDER_TIMEOUT_SECONDS, max_retries=0)
                 logger.info(f"GroqProvider initialized with model '{self.model}'.")
             except Exception as e:
-                logger.warning(f"Could not initialize Groq client: {e}")
+                logger.warning("Could not initialize Groq client; check server configuration.")
         else:
             logger.info("Groq API client offline/mock mode. Deterministic grounded engine active.")
 
@@ -266,15 +289,14 @@ class GroqProvider(LLMProvider):
 
         # Extract the single evidence sentence that directly addresses the question.
         # Never reproduce the raw chunk (titles/headings/footers are stripped).
+        answers = []
         for source in sources:
             answer_text = _extract_direct_answer(question, source.evidence)
-            if answer_text:
-                return ChatResponse(
-                    status=ChatStatus.ANSWERED,
-                    answer=answer_text,
-                    confidence=confidence,
-                    sources=sources
-                )
+            if answer_text and answer_text not in answers:
+                answers.append(answer_text)
+        if answers:
+            return ChatResponse(status=ChatStatus.ANSWERED, answer="\n".join(answers),
+                                confidence=confidence, sources=sources)
 
         return ChatResponse(
             status=ChatStatus.NOT_FOUND,
@@ -301,7 +323,9 @@ class GroqProvider(LLMProvider):
 
         # 2. Check Answer Cache for identical question + evidence
         norm_q = normalize_query_text(question)
-        source_ids = [s.chunk_id for s in sources]
+        source_ids = [s.chunk_id + hashlib.sha256(s.evidence.encode()).hexdigest() for s in sources]
+        if is_follow_up_question(question):
+            source_ids.append(hashlib.sha256(str(conversation_history).encode()).hexdigest())
         cache_key = generate_cache_key(norm_q, document_scope, source_ids)
 
         if cache_key in self._answer_cache:
@@ -343,7 +367,7 @@ class GroqProvider(LLMProvider):
                 )
 
             raw_content = response.choices[0].message.content or ""
-            parsed_data = self._parse_llm_json(raw_content)
+            parsed_data = ProviderOutput.model_validate(self._parse_llm_json(raw_content)).model_dump()
 
             status_str = parsed_data.get("status", "answered").lower()
             status = ChatStatus.NOT_FOUND if status_str == "not_found" else ChatStatus.ANSWERED
@@ -353,7 +377,7 @@ class GroqProvider(LLMProvider):
             if status == ChatStatus.NOT_FOUND:
                 res = ChatResponse(
                     status=ChatStatus.NOT_FOUND,
-                    answer=answer or "Information not available in the uploaded documents.",
+                    answer="Information not available in the uploaded documents.",
                     confidence=ConfidenceLevel.LOW,
                     sources=[]
                 )
@@ -364,7 +388,9 @@ class GroqProvider(LLMProvider):
             source_map = {s.chunk_id: s for s in sources}
             verified_sources = [source_map[sid] for sid in cited_source_ids if sid in source_map]
             if not verified_sources:
-                verified_sources = sources
+                return ChatResponse(status=ChatStatus.NOT_FOUND,
+                                    answer="Information not available in the uploaded documents.",
+                                    confidence=ConfidenceLevel.LOW, sources=[])
 
             confidence = calculate_evidence_confidence(verified_sources)
 
@@ -378,7 +404,7 @@ class GroqProvider(LLMProvider):
             return res
 
         except Exception as e:
-            logger.error(f"Groq API call error: {e}. Using deterministic grounded fallback.")
+            logger.error("Groq request failed; using deterministic passage extraction.")
             res = self._fallback_local_generation(question, sources)
             self._answer_cache[cache_key] = res
             return res

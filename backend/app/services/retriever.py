@@ -167,7 +167,7 @@ class RetrieverService:
                     break
                 # Check near-duplicate text overlap
                 overlap = calculate_text_overlap_ratio(text, existing["text"])
-                if overlap > 0.75:
+                if overlap > 0.75 and candidate["metadata"].get("document_id") == existing["metadata"].get("document_id"):
                     is_duplicate = True
                     break
 
@@ -187,16 +187,28 @@ class RetrieverService:
             target_chunks_count = self.final_context_chunks
 
         selected_candidates = deduped_candidates[:target_chunks_count]
+        # Keep the strongest relevant passage from each version in cross-document queries.
+        if not document_id_filter:
+            seen = {r["metadata"].get("document_id") for r in selected_candidates}
+            for candidate in deduped_candidates:
+                doc_id = candidate["metadata"].get("document_id")
+                if doc_id not in seen and candidate["coverage"] >= 0.5:
+                    selected_candidates.append(candidate)
+                    seen.add(doc_id)
+                if len(selected_candidates) >= self.final_context_chunks:
+                    break
 
         # 7. Format into SourceEvidence objects
         sources: list[SourceEvidence] = []
         for res in selected_candidates:
             meta = res["metadata"]
+            if not meta.get("document_id") or not meta.get("filename") or not isinstance(meta.get("page"), int) or meta["page"] < 1:
+                continue
             sources.append(
                 SourceEvidence(
                     document_id=meta.get("document_id", ""),
-                    filename=meta.get("filename", "Document"),
-                    page=int(meta.get("page", 1)),
+                    filename=meta["filename"],
+                    page=meta["page"],
                     section=meta.get("section", "General"),
                     evidence=res["text"],
                     chunk_id=res["chunk_id"],

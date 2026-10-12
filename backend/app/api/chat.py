@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, status
 from app.core.logging import logger
 from app.models.schemas import ChatRequest, ChatResponse, ChatStatus, ConfidenceLevel
 from app.services.llm import llm_service
+from app.services.verification import verify_response
 from app.services.retriever import retriever_service
 from app.services.vector_store import vector_store_service
 
@@ -47,10 +48,12 @@ async def query_knowledge_base(request: ChatRequest):
 
     # 1. Retrieve relevant evidence chunks
     try:
-        retrieved_sources = retriever_service.retrieve(
-            query=question,
-            document_id_filter=request.document_id
-        )
+        if request.document_ids:
+            retrieved_sources = []
+            for document_id in request.document_ids:
+                retrieved_sources.extend(retriever_service.retrieve(query=question, document_id_filter=document_id))
+        else:
+            retrieved_sources = retriever_service.retrieve(query=question, document_id_filter=request.document_id)
     except Exception as e:
         logger.error(f"Retrieval error: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve evidence from vector store.")
@@ -74,7 +77,9 @@ async def query_knowledge_base(request: ChatRequest):
             conversation_history=request.conversation_history,
             document_scope=request.document_id
         )
-        return response
+        verified = verify_response(response)
+        verified.retrieval_chunk_ids = [s.chunk_id for s in retrieved_sources]
+        return verified
     except Exception as e:
-        logger.error(f"Error generating answer: {e}")
-        raise HTTPException(status_code=500, detail=f"Answer generation error: {str(e)}")
+        logger.error("Answer generation failed.")
+        raise HTTPException(status_code=500, detail="Answer generation failed. Please retry.")

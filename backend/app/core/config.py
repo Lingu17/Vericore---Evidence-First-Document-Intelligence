@@ -13,6 +13,7 @@ class Settings(BaseSettings):
 
     # LLM Provider Configuration
     GROQ_API_KEY: str = ""
+    PROVIDER_TIMEOUT_SECONDS: float = 30.0
     GROQ_MODEL: str = "openai/gpt-oss-20b"
     USE_MOCK_LLM: bool = False
 
@@ -23,6 +24,7 @@ class Settings(BaseSettings):
 
     # Vector Database & Embeddings (Local ₹0 Cost)
     CHROMA_PATH: str = "./chroma_db"
+    EMBEDDING_BACKEND: str = "sentence_transformers"
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
 
     # Retrieval & Adaptive Context Parameters
@@ -65,6 +67,9 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: set[str] = {".pdf", ".txt"}
 
     # Server Settings
+    WORKSPACE_USERNAME: str = "owner"
+    WORKSPACE_PASSWORD: str = ""
+    REQUESTS_PER_MINUTE: int = 60
     ENV: str = "development"
     HOST: str = "0.0.0.0"
     PORT: int = 8000
@@ -72,8 +77,7 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "*"
+        "http://127.0.0.1:3000"
     ]
 
     model_config = SettingsConfigDict(

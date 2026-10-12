@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from app.core.config import settings
 from app.models.schemas import HealthResponse
 from app.services.vector_store import vector_store_service
+from app.services.llm import llm_service
 
 router = APIRouter(tags=["Health"])
 
@@ -16,6 +17,6 @@ async def health_check():
         status="healthy",
         version="1.0.0",
         embedding_model=settings.EMBEDDING_MODEL,
-        llm_provider="Groq" if settings.GROQ_API_KEY else "Local Grounded Engine",
+        llm_provider="Groq" if llm_service.api_key and not settings.USE_MOCK_LLM else "Local Grounded Engine",
         vector_store_documents=doc_count
     )
